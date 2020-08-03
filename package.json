@@ -6,9 +6,13 @@
     "gymnasticon": "./lib/app/cli.js"
   },
   "scripts": {
+    "prepublishOnly": "npm run build",
     "build": "babel --delete-dir-on-start src -d lib",
     "test": "tape lib/test/**/*.js"
   },
+  "files": [
+    "/lib"
+  ],
   "author": "<ptx2@ptx2.net>",
   "license": "MIT",
   "dependencies": {
