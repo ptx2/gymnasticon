@@ -9,10 +9,11 @@ Environment=
 WorkingDirectory=/home/pi
 User=pi
 Group=pi
-ExecStart=/usr/local/bin/gymnasticon
+ExecStart=/usr/local/bin/gymnasticon --server-ping-interval=6
 RestartSec=1
 Restart=on-failure
+AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target
-
