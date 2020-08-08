@@ -19,16 +19,40 @@ Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other
 * TrainerRoad (only briefly)
 * Rouvy (only briefly)
 
+## Platforms tested
+
+* Raspbian Buster on Raspberry Pi Zero W
+* Raspbian Buster on Raspberry Pi 4
+
+Any Linux computer with a Bluetooth 4.1+ adapter (multi-role capability) should work. Older macOS (10.13) may work. Latest macOS should be possible but there are open issues.
+
+## Dependencies
+
+* Node.JS 12.16.1+
+  * [armv6l](https://unofficial-builds.nodejs.org/download/release/v12.18.3/) binaries (Pi Zero W)
+  * [armv7l](https://nodejs.org/dist/latest-v12.x/) binaries (Pi 4)
+
 ## Quick Start: Install from npm
 
-> Note: Your user must have permission to access the Bluetooth adapter.
-> Note: The only supported platform is Linux but it may work elsewhere.
-> Note: A Bluetooth 4.1+ adapter with simultaneous Central and Peripheral roles is required.
+> Note: Your user must have permission to access the Bluetooth adapter and advertise services.
 
     npm install -g gymnasticon
     gymnasticon
 
-See `deploy/gymnasticon.service` for an example of how to automatically start on boot.
+To run as an unprivileged user:
+
+    # this gives cap_net_raw+eip to all node programs not just gymnasticon
+    sudo setcap cap_net_raw+eip $(eval readlink -f $(which node))
+
+To run at boot time, restart on exit and to avoid giving cap_net_raw+eip to the node binary it is recommended to run under systemd. See the `deploy/gymnasticon.service` from this repository for an example systemd unit file.
+
+    sudo cp gymnasticon.service /etc/system/systemd
+    sudo systemctl enable gymnasticon
+    sudo systemctl start gymnasticon
+
+To view the output of Gymnasticon running under systemd:
+
+    journalctl -u gymnasticon -f
 
 ## CLI options
 
