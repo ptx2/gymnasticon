@@ -31,7 +31,7 @@ export const defaults = {
   // server options
   serverAdapter: 'hci0', // adapter for receiving connections from apps
   serverName: 'Gymnasticon', // how the Gymnasticon will appear to apps
-  serverPingInterval: 1, // send a 0-power 0-cadence update for cadence below 60 rpm
+  serverPingInterval: 6, // send a 0-power 0-cadence update for cadence below 60 rpm
 };
 
 /**
