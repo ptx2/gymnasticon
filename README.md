@@ -46,7 +46,7 @@ To run as an unprivileged user:
 
 To run at boot time, restart on exit and to avoid giving cap_net_raw+eip to the node binary it is recommended to run under systemd. See the `deploy/gymnasticon.service` from this repository for an example systemd unit file.
 
-    sudo cp gymnasticon.service /etc/system/systemd
+    sudo cp gymnasticon.service /etc/systemd/system
     sudo systemctl enable gymnasticon
     sudo systemctl start gymnasticon
 
