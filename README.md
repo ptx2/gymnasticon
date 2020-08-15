@@ -32,6 +32,9 @@ Any Linux computer with a Bluetooth 4.1+ adapter (multi-role capability) should 
   * [armv6l](https://unofficial-builds.nodejs.org/download/release/v12.18.3/) binaries (Pi Zero W)
   * [armv7l](https://nodejs.org/dist/latest-v12.x/) binaries (Pi 4)
 
+* On Linux (including Raspberry Pi)
+  * `sudo apt-get install libudev-dev` (required by node-bluetooth-hci-socket)
+
 ## Quick Start: Install from npm
 
 > Note: Your user must have permission to access the Bluetooth adapter and advertise services.
