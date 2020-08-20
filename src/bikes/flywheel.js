@@ -21,6 +21,8 @@ const LE_MAX_INTERVAL = 60*1.25;
 const LE_LATENCY = 0;
 const LE_SUPERVISION_TIMEOUT = 4000;
 
+const debuglog = util.debuglog('flywheel');
+
 /**
  * Handles communication with Flywheel indoor training bike using the bike's
  * proprietary protocol atop a standard Bluetooth LE GATT Nordic UART Service.
@@ -49,6 +51,8 @@ export class FlywheelBikeClient extends EventEmitter {
     if (this.state === 'connected') {
       throw new Error('Already connected');
     }
+
+    this.fixPowerDropout = createPowerDropoutFilter();
 
     // scan
     const peripheral = await scan(this.noble, [UART_SERVICE_UUID], this.filters);
@@ -102,7 +106,11 @@ export class FlywheelBikeClient extends EventEmitter {
     try {
       const {type, payload} = parse(data);
       if (type === 'stats') {
-        this.emit(type, payload);
+        const fixed = this.fixPowerDropout(payload);
+        if (fixed.power !== payload.power) {
+          debuglog(`*** replaced zero power with previous power ${fixed.power}`);
+        }
+        this.emit(type, fixed);
       }
     } catch (e) {
       if (!/unable to parse message/.test(e)) {
@@ -204,5 +212,33 @@ async function updateConnectionParameters(peripheral, minInterval, maxInterval, 
       '--timeout', `${Math.floor(supervisionTimeout/10)}`,
     ]
     await execFileAsync(cmd, args);
+  }
+}
+
+/**
+ * Workaround for an issue in the Flywheel Bike where it occasionally
+ * incorrectly reports zero power (watts).
+ *
+ * @private
+ */
+function createPowerDropoutFilter() {
+  let prev = null;
+
+  /**
+   * Returns stats payload with spurious zero removed.
+   * @param {object} curr - current stats payload
+   * @param {number} curr.power - power (watts)
+   * @param {number} curr.cadence - cadence (rpm)
+   * @returns {object} fixed - fixed stats payload
+   * @returns {object} fixed.power - fixed power (watts)
+   * @returns {object} fixed.cadence - cadence
+   */
+  return function (curr) {
+    let fixed = {...curr};
+    if (prev !== null && curr.power === 0 && curr.cadence > 0 && prev.power > 0) {
+      fixed.power = prev.power;
+    }
+    prev = curr;
+    return fixed;
   }
 }
