@@ -2,11 +2,13 @@
 
 <p align="center">
 <img src="docs/gymnasticon.jpg">
-</center>
+</p>
 
 Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other training apps. Support for other bikes can be added easily.
 
-![Diagram](docs/diagram.png)
+<p align="center">
+<img src="docs/diagram.png">
+</p>
 
 ## Bikes tested
 
@@ -23,21 +25,54 @@ Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other
 
 * Raspbian Buster on Raspberry Pi Zero W
 * Raspbian Buster on Raspberry Pi 4
+* macOS 10.13, 10.15 (see [#4](https://github.com/ptx2/gymnasticon/issues/4))
 
-Any Linux computer with a Bluetooth 4.1+ adapter (multi-role capability) should work. Older macOS (10.13) may work. Latest macOS should be possible but there are open issues.
+Any Linux computer with a Bluetooth 4.1+ adapter (multi-role capability) should work. Experimental macOS support is in the macos branch.
 
-## Dependencies
+## Quick Start: Install Gymnasticon SD card image
+
+<p align="center">
+<img src="https://user-images.githubusercontent.com/68594395/90970770-e6879180-e4d6-11ea-91d6-26ff06267c86.gif">
+</p>
+
+This is the easiest way to get up and running on a Raspberry Pi.
+
+Prerequisites:
+
+1. A Raspberry Pi Zero W or Raspberry Pi 4
+2. A [compatible](https://www.raspberrypi.org/documentation/installation/sd-cards.md) micro-SD card (8GB+)
+3. Access to a computer with an SD card slot
+4. A program to write SD card images like [Raspberry Pi Imager](https://www.raspberrypi.org/downloads/) or `dd(1)`
+
+Steps:
+
+1. Download the latest [Gymnasticon SD card image](https://github.com/ptx2/gymnasticon/releases/latest/download/gymnasticon-raspberrypi.img.xz)
+2. Write the image to the SD card using Raspberry Pi Imager or `dd`
+3. Insert the SD card in the Raspberry Pi, power it up and wait a minute
+4. Start pedaling and Gymnasticon should appear in the Zwift device list
+
+Optional extra steps:
+
+1. Setup [networking and remote access](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) so you can check logs, perform upgrades, and do clean shutdowns, etc.
+
+> Note: It's easiest to leave the Raspberry Pi plugged in once it's set up. Safely shutting it down requires first logging in and halting the system at the command-line with `sudo halt`.
+
+## Manual install
+
+Try the Quick Start first. Otherwise read on for how to install Gymnasticon and its dependencies manually.
+
+Dependencies:
 
 * Node.JS 12.16.1+
-  * [armv6l](https://unofficial-builds.nodejs.org/download/release/v12.18.3/) binaries (Pi Zero W)
-  * [armv7l](https://nodejs.org/dist/latest-v12.x/) binaries (Pi 4)
+  * [armv6l](https://unofficial-builds.nodejs.org/download/release/v12.18.3/) binaries (Raspberry Pi)
+  * [x64](https://nodejs.org/dist/latest-v12.x/) binaries
 
 * On Linux (including Raspberry Pi)
   * `sudo apt-get install libudev-dev` (required by node-bluetooth-hci-socket)
 
-## Quick Start: Install from npm
-
 > Note: Your user must have permission to access the Bluetooth adapter and advertise services.
+
+Install:
 
     npm install -g gymnasticon
     gymnasticon
@@ -69,7 +104,7 @@ $ gymnasticon --help
 (_)/(_)
 
 Gymnasticon
-v1.0.0
+v1.0.3
 
 usage: gymnasticon [OPTIONS]
 
