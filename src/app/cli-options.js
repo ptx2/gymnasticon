@@ -68,5 +68,16 @@ export const options = {
     describe: '<seconds> ping app when user not pedaling',
     type: 'number',
     default: defaults.serverPingInterval,
+  },
+
+  'power-scale': {
+    describe: '<value> scale watts by this multiplier',
+    type: 'number',
+    default: defaults.powerScale,
+  },
+  'power-offset': {
+    describe: '<value> add this value to watts',
+    type: 'number',
+    default: defaults.powerOffset,
   }
 };

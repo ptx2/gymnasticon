@@ -32,6 +32,10 @@ export const defaults = {
   serverAdapter: 'hci0', // adapter for receiving connections from apps
   serverName: 'Gymnasticon', // how the Gymnasticon will appear to apps
   serverPingInterval: 6, // send a 0-power 0-cadence update for cadence below 60 rpm
+
+  // power adjustment (to compensate for inaccurate power measurements on bike)
+  powerScale: 1.0, // multiply power by this
+  powerOffset: 0.0, // add this to power
 };
 
 /**
@@ -64,6 +68,8 @@ export class App {
     this.pingInterval = new Timer(opts.serverPingInterval);
     this.statsTimeout = new Timer(opts.bikeStatsTimeout, {repeats: false});
     this.connectTimeout = new Timer(opts.bikeConnectTimeout, {repeats: false});
+    this.powerScale = opts.powerScale;
+    this.powerOffset = opts.powerOffset;
 
     this.pingInterval.on('timeout', this.onPingInterval.bind(this));
     this.statsTimeout.on('timeout', this.onBikeStatsTimeout.bind(this));
@@ -109,6 +115,7 @@ export class App {
   }
 
   onBikeStats({ power, cadence }) {
+    power = power > 0 ? Math.max(0, Math.round(power * this.powerScale + this.powerOffset)) : 0;
     this.logger.log(`received stats from bike [power=${power}W cadence=${cadence}rpm]`);
     this.statsTimeout.reset();
     this.power = power;
