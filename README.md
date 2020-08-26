@@ -125,10 +125,13 @@ Options:
   --server-name           <name> used for Bluetooth advertisement
                                                         [default: "Gymnasticon"]
   --server-ping-interval  <seconds> ping app when user not pedaling
+                                                           [number] [default: 6]
+  --power-scale           <value> scale watts by this multiplier
                                                            [number] [default: 1]
+  --power-offset          <value> add this value to watts  [number] [default: 0]
   --version               Show version number                          [boolean]
   -h, --help              Show help                                    [boolean]
-  ```
+```
 
 ## Contributing
 
