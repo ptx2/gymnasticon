@@ -55,28 +55,27 @@ export class FlywheelBikeClient extends EventEmitter {
     this.fixPowerDropout = createPowerDropoutFilter();
 
     // scan
-    const peripheral = await scan(this.noble, [UART_SERVICE_UUID], this.filters);
+    this.peripheral = await scan(this.noble, [UART_SERVICE_UUID], this.filters);
 
     // connect
-    peripheral.on('disconnect', this.onDisconnect);
-    await peripheral.connectAsync();
+    this.peripheral.on('disconnect', this.onDisconnect);
+    await this.peripheral.connectAsync();
 
     // workaround for bluez rejecting connection parameters
-    await updateConnectionParameters(peripheral, LE_MIN_INTERVAL, LE_MAX_INTERVAL, LE_LATENCY, LE_SUPERVISION_TIMEOUT); // needed for hci bluez
+    await updateConnectionParameters(this.peripheral, LE_MIN_INTERVAL, LE_MAX_INTERVAL, LE_LATENCY, LE_SUPERVISION_TIMEOUT); // needed for hci bluez
 
     // discover services/characteristics
-    const {characteristics} = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
+    const {characteristics} = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
       [UART_SERVICE_UUID], [UART_TX_UUID, UART_RX_UUID]);
     const [tx, rx] = characteristics;
-
-    // subscribe to receive data
-    tx.on('read', this.onReceive);
-    await tx.subscribeAsync();
-
     this.tx = tx;
     this.rx = rx;
+
+    // subscribe to receive data
+    this.tx.on('read', this.onReceive);
+    await this.tx.subscribeAsync();
+
     this.state = 'connected';
-    this.peripheral = peripheral;
   }
 
   /**
@@ -153,7 +152,7 @@ export class FlywheelBikeClient extends EventEmitter {
      * @type {object}
      * @property {string} address - mac address
      */
-    this.emit('disconnect', {address: this.perpiheral.address});
+    this.emit('disconnect', {address: this.peripheral.address});
   }
 }
 

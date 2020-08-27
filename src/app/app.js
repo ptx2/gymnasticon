@@ -128,7 +128,7 @@ export class App {
     process.exit(0);
   }
 
-  onBikeDisconnect(address) {
+  onBikeDisconnect({ address }) {
     this.logger.log(`bike disconnected ${address}`);
     process.exit(0);
   }
