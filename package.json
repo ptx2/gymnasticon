@@ -21,6 +21,8 @@
   "dependencies": {
     "@abandonware/bleno": "^0.5.1-2",
     "@abandonware/noble": "^1.9.2-8",
+    "parser-delimiter": "^1.0.2",
+    "serialport": "^9.0.1",
     "yargs": "^15.3.1"
   },
   "devDependencies": {

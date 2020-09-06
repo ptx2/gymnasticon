@@ -1,9 +1,11 @@
 import {FlywheelBikeClient} from './flywheel';
+import {PelotonBikeClient} from './peloton';
 import {BotBikeClient} from './bot';
 import {macAddress} from '../util/mac-address';
 
 const factories = {
   'flywheel': createFlywheelBikeClient,
+  'peloton': createPelotonBikeClient,
   'bot': createBotBikeClient,
 };
 
@@ -26,6 +28,12 @@ function createFlywheelBikeClient(options, noble) {
   if (options.flywheelName) filters.name = options.flywheelName;
   process.env['NOBLE_HCI_DEVICE_ID'] = options.flywheelAdapter;
   return new FlywheelBikeClient(noble, filters);
+}
+
+function createPelotonBikeClient(options, noble) {
+  const filters = {};
+  if (options.pelotonPath) filters.path = options.pelotonPath;
+  return new PelotonBikeClient(noble, filters);
 }
 
 function createBotBikeClient(options, noble) {

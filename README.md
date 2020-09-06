@@ -13,6 +13,7 @@ Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other
 ## Bikes tested
 
 * Flywheel (tested)
+* Peloton (v1)
 * LifeFitness IC5 (probably works)
 
 ## Apps tested
@@ -117,6 +118,8 @@ Options:
   --bike-adapter          <name> for bike connection           [default: "hci0"]
   --flywheel-address      <macaddr>
   --flywheel-name         <name>
+  --peloton-path          <path> usb serial device path
+                                              [string] [default: "/dev/ttyUSB0"]
   --bot-power             <watts> initial bot power                     [number]
   --bot-cadence           <rpm> initial bot cadence                     [number]
   --bot-host              <host> for power/cadence control over udp     [string]

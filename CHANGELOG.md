@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+- Added support for Peloton data source via USB serial device patched to the Peloton data cable
+
 ## 1.0.4
 - Add power-scale and power-offset CLI options. [d6c0e4e0](https://github.com/ptx2/gymnasticon/commit/d6c0e4e067317e4903fafbe1a9016e02087e402f)
 
