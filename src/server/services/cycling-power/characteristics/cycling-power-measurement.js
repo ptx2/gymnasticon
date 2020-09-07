@@ -19,9 +19,10 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
         new Descriptor({
           uuid: '2903',
           value: Buffer.alloc(2)
-        })
+       })
       ]
     })
+    this.lastcrank = false;
   }
 
   /**
@@ -38,14 +39,33 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
     const value = Buffer.alloc(8);
     value.writeInt16LE(power, 2);
 
-    // include crank data if provided
+    // include new crank data if provided
     if (crank) {
+      console.log("Sending new TS")
       const revolutions16bit = crank.revolutions & 0xffff;
       const timestamp16bit = Math.floor(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
       value.writeUInt16LE(revolutions16bit, 4);
       value.writeUInt16LE(timestamp16bit, 6);
       flags |= FLAG_HASCRANKDATA;
+      this.lastcrank = crank;
     }
+    else {
+      /* Some devices (Garmin Edge)  oscillate between a populated cadence value
+         and not displaying a value if the BLE frame doesn't contain a crank update.
+         While the spec itself allows for this, we can work around it by resending the
+         same timestamp + crank revolution number, which will keep the device from
+         both displaying a null value as well as from calculating it into the displayed
+         number.
+      */
+      if (this.lastcrank) {
+        const revolutions16bit = this.lastcrank.revolutions & 0xffff;
+        const timestamp16bit = Math.floor(this.lastcrank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
+        value.writeUInt16LE(revolutions16bit, 4);
+        value.writeUInt16LE(timestamp16bit, 6);
+        flags |= FLAG_HASCRANKDATA;
+      }
+    }
+  
 
     value.writeUInt16LE(flags, 0);
 
