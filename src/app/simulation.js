@@ -14,6 +14,7 @@ export class Simulation extends EventEmitter {
     this._interval = Infinity;
     this._lastPedalTime = -Infinity;
     this._timeoutId = null;
+    this._watchdog = null;
   }
 
   /**
@@ -22,12 +23,16 @@ export class Simulation extends EventEmitter {
    * @private
    */
   updateInterval(x) {
+    if (this._watchdog == null) {
+      console.log("Setting Watchdog");
+      this._watchdog = setInterval(() => {this.updateInterval(this._cadence)}, 100)
+    }
     this._interval = x > 0 ? 1000 * (60 / x) : Infinity;
     if (this._timeoutId) {
       clearTimeout(this._timeoutId);
       this._timeoutId = null;
     }
-    this.schedulePedal();
+     this.schedulePedal()
   }
 
 
@@ -39,7 +44,9 @@ export class Simulation extends EventEmitter {
     var newCadence = x
     if (this._requestedCadence != newCadence){
       this._cadence = newCadence;
-      this.updateInterval(this._cadence);
+      if (this._interval === Infinity) {
+        this.updateInterval(this._cadence); // Start the chain.
+      }
       this._requestedCadence = newCadence
     }
   }
@@ -54,11 +61,13 @@ export class Simulation extends EventEmitter {
 
   /**
    * Handle a pedal event.
-   * @emits Simulation#pedal
    * @private
+   * @emits Simulation#pedal
    */
   onPedal() {
     let timeSinceLast = Date.now() - this._lastPedalTime;
+    this._lastPedalTime = Date.now();
+    this.emit('pedal', this._lastPedalTime);
     // Since the BLE timestamp is in units of 1/1024ths of a second
     // we have precision loss. This, with the fact that javascript
     // interval timers are not precise means we need to attempt to
@@ -67,24 +76,15 @@ export class Simulation extends EventEmitter {
     let quantumLast = Math.floor(timeSinceLast * (1000 / 1024))
     let effectiveCadence = (60 * 1000) / quantumLast;
     console.log("Effective Cadence: " + effectiveCadence);
-    this._lastPedalTime = Date.now();
     if (timeSinceLast !== Infinity){
       if (effectiveCadence > this.cadence){
         this._cadence -= CADENCE_DELTA
-        this.updateInterval(this._cadence)
       }
       else if (effectiveCadence < this.cadence){
         this._cadence += CADENCE_DELTA
-        this.updateInterval(this._cadence);
       }
     }
-
-    /**
-     * Pedal event.
-     * @event Simulation#pedal
-     * @type {number} timestamp - timestamp (ms) of this pedal event
-     */
-    this.emit('pedal', this._lastPedalTime);
+    //this.updateInterval(this._cadence)
   }
 
   /**
@@ -93,8 +93,11 @@ export class Simulation extends EventEmitter {
    */
   schedulePedal() {
     if (this._interval === Infinity) return;
-    this._timeoutId = setInterval(() => {
+
+    let timeSinceLast = Date.now() - this._lastPedalTime;
+    let timeUntilNext = Math.max(0, this._interval - timeSinceLast);
+    this._timeoutId = setTimeout(() => {
       this.onPedal();
-    }, this._interval);
+    }, timeUntilNext);
   }
 }
