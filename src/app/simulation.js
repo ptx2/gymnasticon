@@ -39,8 +39,8 @@ export class Simulation extends EventEmitter {
    * @emits Simulation#pedal
    * @private
    */
-  onPedal() {
-    this._lastPedalTime = Date.now();
+  onPedal(timestamp) {
+    this._lastPedalTime = Number.isFinite(timestamp) ? timestamp : Date.now();
     /**
      * Pedal event.
      * @event Simulation#pedal
@@ -56,10 +56,12 @@ export class Simulation extends EventEmitter {
   schedulePedal() {
     if (this._interval === Infinity) return;
 
-    let timeSinceLast = Date.now() - this._lastPedalTime;
+    let now = Date.now();
+    let timeSinceLast = now - this._lastPedalTime;
     let timeUntilNext = Math.max(0, this._interval - timeSinceLast);
+    let nextPedalTime = now - timeSinceLast + this._interval;
     this._timeoutId = setTimeout(() => {
-      this.onPedal();
+      this.onPedal(nextPedalTime);
       this.schedulePedal();
     }, timeUntilNext);
   }
