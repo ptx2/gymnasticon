@@ -104,7 +104,7 @@ $ gymnasticon --help
 (_)/(_)
 
 Gymnasticon
-v1.0.3
+v1.0.5
 
 usage: gymnasticon [OPTIONS]
 

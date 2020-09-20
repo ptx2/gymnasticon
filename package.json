@@ -1,6 +1,6 @@
 {
   "name": "gymnasticon",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Enables the Flywheel Home Bike to work with Zwift and other training apps.",
   "engines": {
     "node": ">=12.16.1"
