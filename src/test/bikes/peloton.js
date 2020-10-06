@@ -1,7 +1,7 @@
 import test from 'tape';
 import {decodePeloton} from '../../bikes/peloton';
 
-test('parse() parses Peloton stats messages', t => {
+test('decodePeloton() parses Peloton stats messages', t => {
   const bufPower = Buffer.from('f14405363333323038', 'hex');
   const power = decodePeloton(bufPower, bufPower[2], true);
   const bufRPM = Buffer.from('f14103323930d0', 'hex');
