@@ -5,7 +5,7 @@ import util from 'util';
 const SerialPort = require('serialport')
 const Delimiter = require('@serialport/parser-delimiter')
 
-const PACKET_DELIMITER = new Buffer('f6', 'hex');
+const PACKET_DELIMITER = Buffer.from('f6', 'hex');
 
 const debuglog = util.debuglog('peloton');
 
@@ -62,7 +62,6 @@ export class PelotonBikeClient extends EventEmitter {
   }
 
   onSerialMessage(data) {
-    // @todo handle bike versions (v1/v2) -- data[0]
     switch(data[1]) {
       case 65:
         this.cadence = decodePeloton(data, data[2], false);
@@ -74,7 +73,7 @@ export class PelotonBikeClient extends EventEmitter {
   }
 }
 
-function decodePeloton(bufferArray, byteLength, isPower) {
+export function decodePeloton(bufferArray, byteLength, isPower) {
   let decimalPlace = 1;
   let precision = 0.0;
   let accumulator = 0;
@@ -83,7 +82,7 @@ function decodePeloton(bufferArray, byteLength, isPower) {
   for (let iteratorTemp = iteratorOffset; iteratorTemp < iteratorOffset + byteLength; iteratorTemp++) {
     let offsetVal = bufferArray[iteratorTemp] - 48;
     if (offsetVal < 0 || offsetVal > 9) {
-      console.log("invalid value detected: ", offsetVal);
+      debuglog("invalid value detected: ", offsetVal);
       return;
     }
 

@@ -1,7 +1,7 @@
 import {Characteristic, Descriptor} from '@abandonware/bleno';
 
 const FLAG_HASCRANKDATA = (1<<5);
-const CRANK_TIMESTAMP_SCALE = 1000 / 1024; // timestamp resolution is 1/1024 sec
+const CRANK_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
 
 /**
  * Bluetooth LE GATT Cycling Power Measurement Characteristic implementation.
@@ -41,7 +41,7 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
     // include crank data if provided
     if (crank) {
       const revolutions16bit = crank.revolutions & 0xffff;
-      const timestamp16bit = Math.floor(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
+      const timestamp16bit = Math.round(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
       value.writeUInt16LE(revolutions16bit, 4);
       value.writeUInt16LE(timestamp16bit, 6);
       flags |= FLAG_HASCRANKDATA;

@@ -1,6 +1,6 @@
 {
   "name": "gymnasticon",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Enables the Flywheel Home Bike to work with Zwift and other training apps.",
   "engines": {
     "node": ">=12.16.1"
@@ -20,9 +20,9 @@
   "license": "MIT",
   "dependencies": {
     "@abandonware/bleno": "^0.5.1-2",
-    "@abandonware/noble": "^1.9.2-8",
     "parser-delimiter": "^1.0.2",
     "serialport": "^9.0.1",
+    "@abandonware/noble": "^1.9.2-10",
     "yargs": "^15.3.1"
   },
   "devDependencies": {
