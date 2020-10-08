@@ -59,7 +59,7 @@ export class Simulation extends EventEmitter {
     let now = Date.now();
     let timeSinceLast = now - this._lastPedalTime;
     let timeUntilNext = Math.max(0, this._interval - timeSinceLast);
-    let nextPedalTime = now - timeSinceLast + this._interval;
+    let nextPedalTime = now + timeUntilNext;
     this._timeoutId = setTimeout(() => {
       this.onPedal(nextPedalTime);
       this.schedulePedal();
