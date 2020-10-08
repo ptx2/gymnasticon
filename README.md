@@ -6,6 +6,10 @@
 
 Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other training apps. Support for other bikes can be added easily.
 
+The original Peloton Bike is now supported. Support requires a serial to USB adapter and custom wiring via RCA cables or through terminal blocks. For more details on setting up the hardware, see the [PR notes](https://github.com/ptx2/gymnasticon/pull/12). 
+
+> Note: Peloton Bike+ is currently unsupported as it uses a USB-C connection and a (most likely) proprietary communications protocol.
+
 <p align="center">
 <img src="docs/diagram.png">
 </p>
@@ -13,6 +17,7 @@ Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other
 ## Bikes tested
 
 * Flywheel (tested)
+* Peloton Bike (Original)
 * LifeFitness IC5 (probably works)
 
 ## Apps tested
@@ -117,6 +122,8 @@ Options:
   --bike-adapter          <name> for bike connection           [default: "hci0"]
   --flywheel-address      <macaddr>
   --flywheel-name         <name>
+  --peloton-path          <path> usb serial device path
+                                              [string] [default: "/dev/ttyUSB0"]
   --bot-power             <watts> initial bot power                     [number]
   --bot-cadence           <rpm> initial bot cadence                     [number]
   --bot-host              <host> for power/cadence control over udp     [string]
