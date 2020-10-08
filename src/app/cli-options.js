@@ -34,7 +34,11 @@ export const options = {
   'flywheel-name': {
     describe: '<name>',
   },
-
+  'peloton-path': {
+    describe: '<path> usb serial device path',
+    type: 'string',
+    default: defaults.pelotonPath,
+  },
   'bot-power': {
     describe: '<watts> initial bot power',
     type: 'number',

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+- Added support for Peloton data source via USB serial device patched to the Peloton data cable
+
 ## 1.0.5
 - Add fix for accurate cadence reporting. [f807cb48](https://github.com/ptx2/gymnasticon/commit/f807cb48c85711e1bbc695762d9293dfaf8a5982)
 - Add error message when run with insufficient capabilities. [7cd90d2f](https://github.com/ptx2/gymnasticon/commit/7cd90d2fcabcb354fb5ade7903fa8eb23a523bdb)
