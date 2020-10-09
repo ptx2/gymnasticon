@@ -6,8 +6,8 @@ import {macAddress} from './mac-address';
  * @param {Noble} noble - a Noble instance.
  * @param {string[]} serviceUuids - find devices advertising these GATT service uuids
  * @param {object} filters - find devices matching these filters
- * @property {string} filters.address - mac address
- * @property {string} filters.name - device name
+ * @property {function} filters.address - mac address match predicate function
+ * @property {function} filters.name - device name match predicate function
  * @returns {Peripheral} the matching peripheral
  */
 export async function scan(noble, serviceUuids, filters = {}) {
@@ -32,5 +32,5 @@ function getFilterProps(result) {
 }
 
 function match(filters, obj) {
-  return Object.keys(filters).every(k => obj[k] == filters[k]);
+  return Object.keys(filters).every(k => filters[k](obj[k]));
 }

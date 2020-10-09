@@ -20,7 +20,7 @@ export const defaults = {
 
   // flywheel bike options
   flywheelAddress: undefined, // mac address of bike
-  flywheelName: undefined, // name of bike
+  flywheelName: 'Flywheel', // name of bike
 
   // peloton bike options
   pelotonPath: '/dev/ttyUSB0', // default path for usb to serial device

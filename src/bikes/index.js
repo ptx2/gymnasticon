@@ -26,8 +26,12 @@ export function createBikeClient(options, noble) {
 
 function createFlywheelBikeClient(options, noble) {
   const filters = {};
-  if (options.flywheelAddress) filters.address = macAddress(options.flywheelAddress);
-  if (options.flywheelName) filters.name = options.flywheelName;
+  if (options.flywheelAddress) {
+    filters.address = (v) => v == macAddress(options.flywheelAddress);
+  }
+  if (options.flywheelName) {
+    filters.name = (v) => new RegExp(options.flywheelName).test(v);
+  }
   process.env['NOBLE_HCI_DEVICE_ID'] = options.flywheelAdapter;
   return new FlywheelBikeClient(noble, filters);
 }
