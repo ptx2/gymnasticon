@@ -2,11 +2,13 @@ import {FlywheelBikeClient} from './flywheel';
 import {PelotonBikeClient} from './peloton';
 import {BotBikeClient} from './bot';
 import {macAddress} from '../util/mac-address';
+import fs from 'fs';
 
 const factories = {
   'flywheel': createFlywheelBikeClient,
   'peloton': createPelotonBikeClient,
   'bot': createBotBikeClient,
+  'autodetect': autodetectBikeClient,
 };
 
 export function getBikeTypes() {
@@ -44,4 +46,11 @@ function createBotBikeClient(options, noble) {
     options.botPort,
   ]
   return new BotBikeClient(...args);
+}
+
+function autodetectBikeClient(options, noble) {
+  if (fs.existsSync(options.pelotonPath)) {
+    return createPelotonBikeClient(options, noble);
+  }
+  return createFlywheelBikeClient(options, noble);
 }

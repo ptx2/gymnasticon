@@ -13,7 +13,7 @@ export {getBikeTypes};
 
 export const defaults = {
   // bike options
-  bike: 'flywheel', // bike type
+  bike: 'autodetect', // bike type
   bikeReceiveTimeout: 4, // timeout for receiving stats from bike
   bikeConnectTimeout: 0, // timeout for establishing bike connection
   bikeAdapter: 'hci0', // bluetooth adapter to use for bike connection (BlueZ only)
