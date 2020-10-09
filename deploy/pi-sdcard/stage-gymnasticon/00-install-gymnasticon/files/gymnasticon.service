@@ -2,6 +2,7 @@
 Description=Gymnasticon
 After=bluetooth.target
 Requires=bluetooth.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -11,7 +12,7 @@ User=pi
 Group=pi
 ExecStart=/opt/gymnasticon/node/bin/gymnasticon
 RestartSec=1
-Restart=on-failure
+Restart=always
 
 AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
 NoNewPrivileges=true
