@@ -12,17 +12,15 @@ const debuglog = util.debuglog('gymnasticon:bikes:peloton');
 export class PelotonBikeClient extends EventEmitter {
   /**
    * Create a PelotonBikeClient instance.
-   * @param {Noble} noble - a Noble instance.
-   * @param {object} filters - filters to specify bike when more than one is present
-   * @param {string} filters.path - device path to usb serial device
+   * @param {string} path - device path to usb serial device
    */
-  constructor(noble, filters) {
+  constructor(path) {
     super();
-    this.noble = noble;
-    this.filters = filters;
+    this.path = path;
 
     this.onStatsUpdate = this.onStatsUpdate.bind(this);
     this.onSerialMessage = this.onSerialMessage.bind(this);
+    this.onSerialClose = this.onSerialClose.bind(this);
 
     // initial stats
     this.power = 0;
@@ -37,7 +35,7 @@ export class PelotonBikeClient extends EventEmitter {
       throw new Error('Already connected');
     }
 
-    this._port = new SerialPort(this.filters.path, { baudRate: 19200 });
+    this._port = new SerialPort(this.path, { baudRate: 19200 });
     this._parser = this._port.pipe(new Delimiter({ delimiter: PACKET_DELIMITER }));
     this._parser.on('data', this.onSerialMessage);
 
@@ -70,6 +68,10 @@ export class PelotonBikeClient extends EventEmitter {
         this.power = decodePeloton(data, data[2], true);
         return;
     }
+  }
+
+  onSerialClose() {
+    this.emit('disconnect', {address: this.address});
   }
 }
 

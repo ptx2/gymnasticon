@@ -37,9 +37,8 @@ function createFlywheelBikeClient(options, noble) {
 }
 
 function createPelotonBikeClient(options, noble) {
-  const filters = {};
-  if (options.pelotonPath) filters.path = options.pelotonPath;
-  return new PelotonBikeClient(noble, filters);
+  const {pelotonPath} = options;
+  return new PelotonBikeClient(pelotonPath);
 }
 
 function createBotBikeClient(options, noble) {
