@@ -1,3 +1,4 @@
+import util from 'util';
 import noble from '@abandonware/noble';
 import bleno from '@abandonware/bleno';
 
@@ -8,6 +9,8 @@ import {GymnasticonServer} from '../server';
 import {Simulation} from './simulation';
 import {Timer} from '../util/timer';
 import {Logger} from '../util/logger';
+
+const debuglog = util.debuglog('gymnasticon:app:app');
 
 export {getBikeTypes};
 
@@ -112,7 +115,7 @@ export class App {
   }
 
   onPingInterval() {
-    this.logger.log(`pinging app since no stats or pedal strokes for ${this.pingInterval.interval}s`);
+    debuglog(`pinging app since no stats or pedal strokes for ${this.pingInterval.interval}s`);
     let {power, crank} = this;
     this.server.updateMeasurement({ power, crank });
   }

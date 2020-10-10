@@ -21,7 +21,7 @@ const LE_MAX_INTERVAL = 60*1.25;
 const LE_LATENCY = 0;
 const LE_SUPERVISION_TIMEOUT = 4000;
 
-const debuglog = util.debuglog('flywheel');
+const debuglog = util.debuglog('gymnasticon:bikes:flywheel');
 
 /**
  * Handles communication with Flywheel indoor training bike using the bike's

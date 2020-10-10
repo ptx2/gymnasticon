@@ -7,7 +7,7 @@ const Delimiter = require('@serialport/parser-delimiter')
 
 const PACKET_DELIMITER = Buffer.from('f6', 'hex');
 
-const debuglog = util.debuglog('peloton');
+const debuglog = util.debuglog('gymnasticon:bikes:peloton');
 
 export class PelotonBikeClient extends EventEmitter {
   /**
