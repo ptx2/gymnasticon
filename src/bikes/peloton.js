@@ -5,6 +5,8 @@ import util from 'util';
 const SerialPort = require('serialport')
 const Delimiter = require('@serialport/parser-delimiter')
 
+const EMIT_RATE = .25;
+
 const PACKET_DELIMITER = Buffer.from('f6', 'hex');
 
 const debuglog = util.debuglog('gymnasticon:bikes:peloton');
@@ -21,13 +23,16 @@ export class PelotonBikeClient extends EventEmitter {
     this.onStatsUpdate = this.onStatsUpdate.bind(this);
     this.onSerialMessage = this.onSerialMessage.bind(this);
     this.onSerialClose = this.onSerialClose.bind(this);
+    this.onEmitTimeout = this.onEmitTimeout.bind(this);
 
     // initial stats
     this.power = 0;
     this.cadence = 0;
+    this._powerdirty = false;
+    this._cadencedirty = false;
 
-    this._timer = new Timer(1);
-    this._timer.on('timeout', this.onStatsUpdate);
+    this._emitTimer = new Timer(EMIT_RATE);
+    this._emitTimer.on('timeout', this.onEmitTimeout);
   }
 
   async connect() {
@@ -40,7 +45,7 @@ export class PelotonBikeClient extends EventEmitter {
     this._parser = this._port.pipe(new Delimiter({ delimiter: PACKET_DELIMITER }));
     this._parser.on('data', this.onSerialMessage);
 
-    this._timer.reset();
+    this._emitTimer.reset();
     this.state = 'connected';
   }
 
@@ -60,13 +65,27 @@ export class PelotonBikeClient extends EventEmitter {
     this.emit('stats', {power, cadence});
   }
 
+  onEmitTimeout() {
+    this._powerDirty = false;
+    this._cadenceDirty = false;
+  }
+
   onSerialMessage(data) {
     switch(data[1]) {
       case 65:
-        this.cadence = decodePeloton(data, data[2], false);
+        if (!this._cadenceDirty) {
+	 this.cadence = decodePeloton(data, data[2], false);
+         this._cadenceDirty = true;
+         this.onStatsUpdate();
+	}
         return;
       case 68:
-        this.power = decodePeloton(data, data[2], true);
+        if (!this._powerDirty) {
+          this.power = decodePeloton(data, data[2], true);
+	  this._powerDirty = true;
+	  // Not calling onStatsUpdate because the peloton
+	  // will always send a cadence and power message in rapid succession 	
+        }
         return;
     }
   }
