@@ -36,6 +36,7 @@ export class PelotonBikeClient extends EventEmitter {
     }
 
     this._port = new SerialPort(this.path, { baudRate: 19200 });
+    this._port.on('close', this.onSerialClose);
     this._parser = this._port.pipe(new Delimiter({ delimiter: PACKET_DELIMITER }));
     this._parser.on('data', this.onSerialMessage);
 
