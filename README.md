@@ -109,14 +109,15 @@ $ gymnasticon --help
 (_)/(_)
 
 Gymnasticon
-v1.0.5
+v1.1.0
 
 usage: gymnasticon [OPTIONS]
 
 Options:
   --config                <filename> load options from json file        [string]
   --bike                  <type>
-                     [string] [choices: "flywheel", "bot"] [default: "flywheel"]
+        [string] [choices: "flywheel", "peloton", "bot", "autodetect"] [default:
+                                                                   "autodetect"]
   --bike-connect-timeout  <seconds>                        [number] [default: 0]
   --bike-receive-timeout  <seconds>                        [number] [default: 4]
   --bike-adapter          <name> for bike connection           [default: "hci0"]
@@ -132,7 +133,7 @@ Options:
   --server-name           <name> used for Bluetooth advertisement
                                                         [default: "Gymnasticon"]
   --server-ping-interval  <seconds> ping app when user not pedaling
-                                                           [number] [default: 6]
+                                                           [number] [default: 1]
   --power-scale           <value> scale watts by this multiplier
                                                            [number] [default: 1]
   --power-offset          <value> add this value to watts  [number] [default: 0]

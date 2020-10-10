@@ -1,7 +1,11 @@
 # Changelog
 
 ## 1.1.0
-- Added support for Peloton data source via USB serial device patched to the Peloton data cable
+- Added support for Peloton data source via USB serial device patched to the Peloton data cable. [d9d5f591](https://github.com/ptx2/gymnasticon/commit/d9d5f591ac2367a663da7bd16f5906a1c4847b24)
+- Peloton responsiveness improvements. [aef38383](https://github.com/ptx2/gymnasticon/commit/aef38383f074649ce9b2bde2cea24e2dd58f5eba)
+- Fix for devices that require crank data to be sent at least every second. [1f0ac252](https://github.com/ptx2/gymnasticon/commit/1f0ac25223146f4f441ddae12f5d95f291e1d9b5)
+- Fix burst of pedal events when going from zero to non-zero cadence. [e1e9c681](https://github.com/ptx2/gymnasticon/commit/e1e9c6817fe912878da042e0132079ae0ae9bde3)
+- Fix systemd service to always restarts. [54659c64](https://github.com/ptx2/gymnasticon/commit/54659c6432307ad71d2994cc53e3f902010011b7)
 
 ## 1.0.5
 - Add fix for accurate cadence reporting. [f807cb48](https://github.com/ptx2/gymnasticon/commit/f807cb48c85711e1bbc695762d9293dfaf8a5982)
