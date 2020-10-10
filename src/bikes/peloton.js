@@ -1,5 +1,4 @@
 import {once, EventEmitter} from 'events';
-import {Timer} from '../util/timer';
 import util from 'util';
 
 const SerialPort = require('serialport')
@@ -25,9 +24,6 @@ export class PelotonBikeClient extends EventEmitter {
     // initial stats
     this.power = 0;
     this.cadence = 0;
-
-    this._timer = new Timer(1);
-    this._timer.on('timeout', this.onStatsUpdate);
   }
 
   async connect() {
@@ -40,7 +36,6 @@ export class PelotonBikeClient extends EventEmitter {
     this._parser = this._port.pipe(new Delimiter({ delimiter: PACKET_DELIMITER }));
     this._parser.on('data', this.onSerialMessage);
 
-    this._timer.reset();
     this.state = 'connected';
   }
 
@@ -62,12 +57,14 @@ export class PelotonBikeClient extends EventEmitter {
 
   onSerialMessage(data) {
     switch(data[1]) {
-      case 65:
-        this.cadence = decodePeloton(data, data[2], false);
-        return;
-      case 68:
-        this.power = decodePeloton(data, data[2], true);
-        return;
+    case 65:
+      this.cadence = decodePeloton(data, data[2], false);
+      this.onStatsUpdate();
+      return;
+    case 68:
+      this.power = decodePeloton(data, data[2], true);
+      this.onStatsUpdate();
+      return;
     }
   }
 
