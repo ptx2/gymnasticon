@@ -8,14 +8,27 @@ const PACKET_DELIMITER = Buffer.from('f6', 'hex');
 
 const debuglog = util.debuglog('gymnasticon:bikes:peloton');
 
+const MEASUREMENTS_HEX_ENUM = {
+  RESISTANCE: "f6f54a3f",
+  CADENCE: "f6f54136",
+  POWER: "f6f54439"
+}
+
+export const RECEIVE_TRIGGER = {
+  EVENT: "event",
+  POLL: "poll"
+}
+
 export class PelotonBikeClient extends EventEmitter {
   /**
    * Create a PelotonBikeClient instance.
    * @param {string} path - device path to usb serial device
+   * @param {string} receiveTrigger - whether measurements are received event or poll based
    */
-  constructor(path) {
+  constructor(path, receiveTrigger) {
     super();
     this.path = path;
+    this.receiveTrigger = receiveTrigger;
 
     this.onStatsUpdate = this.onStatsUpdate.bind(this);
     this.onSerialMessage = this.onSerialMessage.bind(this);
@@ -39,6 +52,11 @@ export class PelotonBikeClient extends EventEmitter {
     this._parser.on('data', this.onSerialMessage);
 
     this.state = 'connected';
+
+    debuglog(`Measurement receive trigger: ${this.receiveTrigger}`);
+    if (this.receiveTrigger === RECEIVE_TRIGGER.POLL) {
+      this.pollMeasurementData(this._port);
+    }
   }
 
   /**
@@ -72,6 +90,26 @@ export class PelotonBikeClient extends EventEmitter {
 
   onSerialClose() {
     this.emit('disconnect', {address: this.address});
+  }
+
+  pollMeasurementData(port) {
+    setInterval(function() {
+      // request cadence
+      port.write(Buffer.from(MEASUREMENTS_HEX_ENUM.CADENCE, 'hex'), function(err) {
+        if (err) {
+          return console.log('Error on write: ', err.message)
+        }
+      })
+
+      setTimeout(function() {
+        // request power
+        port.write(Buffer.from(MEASUREMENTS_HEX_ENUM.POWER, 'hex'), function(err) {
+          if (err) {
+            return console.log('Error on write: ', err.message)
+          }
+        })
+      }, 100)
+    }, 200)
   }
 }
 

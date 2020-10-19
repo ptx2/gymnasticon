@@ -1,5 +1,5 @@
 import {FlywheelBikeClient} from './flywheel';
-import {PelotonBikeClient} from './peloton';
+import {PelotonBikeClient, RECEIVE_TRIGGER} from './peloton';
 import {BotBikeClient} from './bot';
 import {macAddress} from '../util/mac-address';
 import fs from 'fs';
@@ -13,6 +13,10 @@ const factories = {
 
 export function getBikeTypes() {
   return Object.keys(factories);
+}
+
+export function getReceiveTriggers() {
+  return Object.keys(RECEIVE_TRIGGER).map((choice) => { return choice.toLowerCase()});
 }
 
 export function createBikeClient(options, noble) {
@@ -37,8 +41,8 @@ function createFlywheelBikeClient(options, noble) {
 }
 
 function createPelotonBikeClient(options, noble) {
-  const {pelotonPath} = options;
-  return new PelotonBikeClient(pelotonPath);
+  const {pelotonPath, pelotonReceiveTrigger} = options;
+  return new PelotonBikeClient(pelotonPath, pelotonReceiveTrigger);
 }
 
 function createBotBikeClient(options, noble) {

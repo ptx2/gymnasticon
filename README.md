@@ -125,6 +125,8 @@ Options:
   --flywheel-name         <name>
   --peloton-path          <path> usb serial device path
                                               [string] [default: "/dev/ttyUSB0"]
+  --peloton-receive-trigger <value> behaviour when receiving data: event or poll
+                                              [string] [default: event]
   --bot-power             <watts> initial bot power                     [number]
   --bot-cadence           <rpm> initial bot cadence                     [number]
   --bot-host              <host> for power/cadence control over udp     [string]
