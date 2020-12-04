@@ -1,4 +1,5 @@
 import {CyclingPowerService} from './services/cycling-power'
+import {FitnessMachineService} from './services/fitness-machine'
 import {BleServer} from '../util/ble-server'
 
 export const DEFAULT_NAME = 'Gymnasticon';
@@ -14,7 +15,8 @@ export class GymnasticonServer extends BleServer {
 	 */
   constructor(bleno, name=DEFAULT_NAME) {
     super(bleno, name, [
-      new CyclingPowerService()
+      new CyclingPowerService(),
+      new FitnessMachineService()
     ])
   }
 
