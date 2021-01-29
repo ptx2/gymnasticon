@@ -106,7 +106,6 @@ export class App {
   }
 
   onPedalStroke(timestamp) {
-    this.pingInterval.reset();
     this.crank.timestamp = timestamp;
     this.crank.revolutions++;
     let {power, crank} = this;
@@ -115,7 +114,8 @@ export class App {
   }
 
   onPingInterval() {
-    debuglog(`pinging app since no stats or pedal strokes for ${this.pingInterval.interval}s`);
+    debuglog(`pinging app since no stats received for ${this.pingInterval.interval}s`);
+    this.simulation.cadence = 0;
     let {power, crank} = this;
     this.server.updateMeasurement({ power, crank });
   }
