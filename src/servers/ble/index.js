@@ -1,5 +1,5 @@
 import {CyclingPowerService} from './services/cycling-power'
-import {BleServer} from '../util/ble-server'
+import {BleServer} from '../../util/ble-server'
 
 export const DEFAULT_NAME = 'Gymnasticon';
 
