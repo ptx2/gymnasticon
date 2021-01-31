@@ -32,7 +32,7 @@ The original Peloton Bike is now supported. Support requires a serial to USB ada
 * Raspbian Buster on Raspberry Pi 4
 * macOS 10.13, 10.15 (see [#4](https://github.com/ptx2/gymnasticon/issues/4))
 
-Any Linux computer with a Bluetooth 4.1+ adapter (multi-role capability) should work. Experimental macOS support is in the macos branch.
+Note: If using a Bluetooth LE bike (e.g. Flywheel) a Bluetooth LE 4.1+ adapter with multi-role capability is required.
 
 ## Quick Start: Install Gymnasticon SD card image
 
