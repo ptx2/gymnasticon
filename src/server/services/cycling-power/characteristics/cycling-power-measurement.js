@@ -13,10 +13,6 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
       properties: ['notify'],
       descriptors: [
         new Descriptor({
-          uuid: '2902',
-          value: Buffer.alloc(2)
-        }),
-        new Descriptor({
           uuid: '2903',
           value: Buffer.alloc(2)
         })
