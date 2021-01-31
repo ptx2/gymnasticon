@@ -73,7 +73,11 @@ export const options = {
     type: 'number',
     default: defaults.serverPingInterval,
   },
-
+  'ant-device-id': {
+    describe: '<id> ANT+ device id for bike power broadcast',
+    type: 'number',
+    default: defaults.antDeviceId,
+  },
   'power-scale': {
     describe: '<value> scale watts by this multiplier',
     type: 'number',

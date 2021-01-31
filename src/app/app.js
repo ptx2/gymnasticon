@@ -5,10 +5,12 @@ import bleno from '@abandonware/bleno';
 import {once} from 'events';
 
 import {createBikeClient, getBikeTypes} from '../bikes';
-import {GymnasticonServer} from '../server';
+import {GymnasticonServer} from '../servers/ble';
+import {AntServer} from '../servers/ant';
 import {Simulation} from './simulation';
 import {Timer} from '../util/timer';
 import {Logger} from '../util/logger';
+import {createAntStick} from '../util/ant-stick';
 
 const debuglog = util.debuglog('gymnasticon:app:app');
 
@@ -38,6 +40,9 @@ export const defaults = {
   serverAdapter: 'hci0', // adapter for receiving connections from apps
   serverName: 'Gymnasticon', // how the Gymnasticon will appear to apps
   serverPingInterval: 1, // send a power measurement update at least this often
+
+  // ANT+ server options
+  antDeviceId: 11234, // random default ANT+ device id
 
   // power adjustment (to compensate for inaccurate power measurements on bike)
   powerScale: 1.0, // multiply power by this
@@ -71,6 +76,11 @@ export class App {
     this.bike = createBikeClient(opts, noble);
     this.simulation = new Simulation();
     this.server = new GymnasticonServer(bleno, opts.serverName);
+
+    this.antStick = createAntStick(opts);
+    this.antServer = new AntServer(this.antStick, {deviceId: opts.antDeviceId});
+    this.antStick.on('startup', this.onAntStickStartup.bind(this));
+
     this.pingInterval = new Timer(opts.serverPingInterval);
     this.statsTimeout = new Timer(opts.bikeStatsTimeout, {repeats: false});
     this.connectTimeout = new Timer(opts.bikeConnectTimeout, {repeats: false});
@@ -97,6 +107,7 @@ export class App {
       this.connectTimeout.cancel();
       this.logger.log(`bike connected ${this.bike.address}`);
       this.server.start();
+      this.startAnt();
       this.pingInterval.reset();
       this.statsTimeout.reset();
     } catch (e) {
@@ -128,6 +139,7 @@ export class App {
     this.simulation.cadence = cadence;
     let {crank} = this;
     this.server.updateMeasurement({ power, crank });
+    this.antServer.updateMeasurement({ power, cadence });
   }
 
   onBikeStatsTimeout() {
@@ -143,5 +155,20 @@ export class App {
   onBikeConnectTimeout() {
     this.logger.log(`bike connection timed out after ${this.connectTimeout.interval}s`);
     process.exit(1);
+  }
+
+  startAnt() {
+    if (!this.antStick.is_present()) {
+      this.logger.log('no ANT+ stick found');
+      return;
+    }
+    if (!this.antStick.open()) {
+      this.logger.error('failed to open ANT+ stick');
+    }
+  }
+
+  onAntStickStartup() {
+    this.logger.log('ANT+ stick opened');
+    this.antServer.start();
   }
 }
