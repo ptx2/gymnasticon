@@ -36,7 +36,10 @@ export class PelotonBikeClient extends EventEmitter {
     await open();
     this._port.on('close', this.onSerialClose);
     this._parser = this._port.pipe(new Delimiter({ delimiter: PACKET_DELIMITER }));
+    const connected = once(this._parser, 'data');
     this._parser.on('data', this.onSerialMessage);
+    // consider the connection established when the first packet arrives
+    await connected;
 
     this.state = 'connected';
   }
