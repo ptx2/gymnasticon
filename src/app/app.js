@@ -82,7 +82,7 @@ export class App {
     this.antStick.on('startup', this.onAntStickStartup.bind(this));
 
     this.pingInterval = new Timer(opts.serverPingInterval);
-    this.statsTimeout = new Timer(opts.bikeReceiveTimeout, {repeats: false});
+    this.statsTimeout = new Timer(opts.bikeStatsTimeout, {repeats: false});
     this.connectTimeout = new Timer(opts.bikeConnectTimeout, {repeats: false});
     this.powerScale = opts.powerScale;
     this.powerOffset = opts.powerOffset;
