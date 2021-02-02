@@ -15,7 +15,7 @@ export class PelotonBikeClient extends EventEmitter {
    * Create a PelotonBikeClient instance.
    * @param {string} path - device path to usb serial device
    */
-  constructor(path, options = {}) {
+  constructor(path) {
     super();
     this.path = path;
 
