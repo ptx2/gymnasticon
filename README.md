@@ -109,7 +109,7 @@ $ gymnasticon --help
 (_)/(_)
 
 Gymnasticon
-v1.1.0
+v1.2.0
 
 usage: gymnasticon [OPTIONS]
 
@@ -134,6 +134,8 @@ Options:
                                                         [default: "Gymnasticon"]
   --server-ping-interval  <seconds> ping app when user not pedaling
                                                            [number] [default: 1]
+  --ant-device-id         <id> ANT+ device id for bike power broadcast
+                                                       [number] [default: 11234]
   --power-scale           <value> scale watts by this multiplier
                                                            [number] [default: 1]
   --power-offset          <value> add this value to watts  [number] [default: 0]

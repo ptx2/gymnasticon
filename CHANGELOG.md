@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+- Added ANT+ Bike Power Profile output (for Garmin Fenix and other watches/bike computers). [d72804f6](https://github.com/ptx2/gymnasticon/commit/d72804f601bc7289219901468860a161183d5e2b)
+- Fix Bluetooth LE power/cadence reporting issue for Windows clients. [737f8bf5](https://github.com/ptx2/gymnasticon/commit/737f8bf5744cdee7c138c205915b7b3d26115c80)
+- Fix Peloton edge-case where user's last-reported cadence persisted after they'd left the ride screen. [1dc4d0d7](https://github.com/ptx2/gymnasticon/commit/1dc4d0d78ffb29f7904741d076529c7d7617f83f)
+- Update bleno dependency to add support for recent macOS. [637d6f90](https://github.com/ptx2/gymnasticon/commit/637d6f90e10e5af23a677893a47836f7ced91ead)
+- Update ini transitive dependency to fix CVE-2020-7788. [47bec1cd](https://github.com/ptx2/gymnasticon/commit/47bec1cd385925f236b407bd2e2eb2c946765a2a)
+
 ## 1.1.0
 - Added support for Peloton data source via USB serial device patched to the Peloton data cable. [d9d5f591](https://github.com/ptx2/gymnasticon/commit/d9d5f591ac2367a663da7bd16f5906a1c4847b24)
 - Peloton responsiveness improvements. [aef38383](https://github.com/ptx2/gymnasticon/commit/aef38383f074649ce9b2bde2cea24e2dd58f5eba)
