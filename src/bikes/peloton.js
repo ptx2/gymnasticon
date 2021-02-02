@@ -1,10 +1,12 @@
 import {once, EventEmitter} from 'events';
+import {Timer} from '../util/timer';
 import util from 'util';
 
 const SerialPort = require('serialport')
 const Delimiter = require('@serialport/parser-delimiter')
 
 const PACKET_DELIMITER = Buffer.from('f6', 'hex');
+const STATS_TIMEOUT = 1.0;
 
 const debuglog = util.debuglog('gymnasticon:bikes:peloton');
 
@@ -24,6 +26,10 @@ export class PelotonBikeClient extends EventEmitter {
     // initial stats
     this.power = 0;
     this.cadence = 0;
+
+    // reset stats to 0 when the user leaves the ride screen or turns the bike off
+    this.statsTimeout = new Timer(STATS_TIMEOUT, {repeats: false});
+    this.statsTimeout.on('timeout', this.onStatsTimeout.bind(this));
   }
 
   async connect() {
@@ -62,16 +68,24 @@ export class PelotonBikeClient extends EventEmitter {
     case 65:
       this.cadence = decodePeloton(data, data[2], false);
       this.onStatsUpdate();
+      this.statsTimeout.reset();
       return;
     case 68:
       this.power = decodePeloton(data, data[2], true);
       this.onStatsUpdate();
+      this.statsTimeout.reset();
       return;
     }
   }
 
   onSerialClose() {
     this.emit('disconnect', {address: this.address});
+  }
+
+  onStatsTimeout() {
+    this.power = 0;
+    this.cadence = 0;
+    this.onStatsUpdate();
   }
 }
 
