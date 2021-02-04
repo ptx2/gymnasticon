@@ -31,3 +31,5 @@ systemctl enable gymnasticon
 EOF
 
 install -v -m 644 files/motd "${ROOTFS_DIR}/etc/motd"
+
+install -v -m 644 files/51-garmin-usb.rules "${ROOTFS_DIR}/etc/udev/rules.d/51-garmin-usb.rules"
