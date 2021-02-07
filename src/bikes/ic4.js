@@ -61,7 +61,7 @@ export class Ic4BikeClient extends EventEmitter {
     await this.peripheral.connectAsync();
 
     // workaround for bluez rejecting connection parameters
-    await updateConnectionParameters(this.peripheral, LE_MIN_INTERVAL, LE_MAX_INTERVAL, LE_LATENCY, LE_SUPERVISION_TIMEOUT); // needed for hci bluez
+    //await updateConnectionParameters(this.peripheral, LE_MIN_INTERVAL, LE_MAX_INTERVAL, LE_LATENCY, LE_SUPERVISION_TIMEOUT); // needed for hci bluez
 
     // discover services/characteristics
     const {characteristics} = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
@@ -71,7 +71,21 @@ export class Ic4BikeClient extends EventEmitter {
 
     // subscribe to receive data
     this.indoorBikeData.on('read', this.onReceive);
-    await this.indoorBikeData.subscribeAsync();
+
+    // XXX: this fails on Read By Type Request, so try option 1 or 2 below
+    //await this.indoorBikeData.subscribeAsync();
+
+    // option #1 -- discover descriptors (get handle), enable notifications manually
+    await this.indoorBikeData.discoverDescriptorsAsync();
+    const cccDescriptor = this.indoorBikeData.descriptors.find(d => d.uuid == '2902');
+    if (!cccDescriptor) {
+      throw new Error('failed CCC descriptor discovery');
+    }
+    await cccDescriptor.writeValueAsync(Buffer.from([1,0])); // 0100 <- enable notifications
+
+    // option #2 -- if not able to discover descriptors, try writing handle directly
+    //const cccdHandle = 0x0031; // cccd handle taken from btmon log
+    //await this.peripheral.writeHandleAsync(cccdHandle, Buffer.from([1,0]), false);
 
     this.state = 'connected';
   }
