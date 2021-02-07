@@ -14,12 +14,6 @@ const IBD_VALUE_MAGIC = Buffer.from([0x44]); // identifies indoor bike data mess
 const IBD_VALUE_IDX_POWER = 6; // 16-bit power (watts) data offset within packet
 const IBD_VALUE_IDX_CADENCE = 4; // 16-bit cadence (1/2 rpm) data offset within packet
 
-// the bike's desired LE connection parameters (needed for BlueZ workaround)
-const LE_MIN_INTERVAL = 24*1.25;
-const LE_MAX_INTERVAL = 40*1.25;
-const LE_LATENCY = 0;
-const LE_SUPERVISION_TIMEOUT = 420;
-
 const debuglog = util.debuglog('gymnasticon:bikes:ic4');
 
 /**
@@ -60,9 +54,6 @@ export class Ic4BikeClient extends EventEmitter {
     this.peripheral.on('disconnect', this.onDisconnect);
     await this.peripheral.connectAsync();
 
-    // workaround for bluez rejecting connection parameters
-    //await updateConnectionParameters(this.peripheral, LE_MIN_INTERVAL, LE_MAX_INTERVAL, LE_LATENCY, LE_SUPERVISION_TIMEOUT); // needed for hci bluez
-
     // discover services/characteristics
     const {characteristics} = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
       [FTMS_SERVICE_UUID], [INDOOR_BIKE_DATA_UUID]);
@@ -72,20 +63,29 @@ export class Ic4BikeClient extends EventEmitter {
     // subscribe to receive data
     this.indoorBikeData.on('read', this.onReceive);
 
-    // XXX: this fails on Read By Type Request, so try option 1 or 2 below
-    //await this.indoorBikeData.subscribeAsync();
-
-    // option #1 -- discover descriptors (get handle), enable notifications manually
+    // Workaround for enabling notifications on the IC4 bike.
+    //
+    // Characteristic notifications are enabled by setting bit 0 of the Client
+    // Characteristic Configuration Descriptor (CCCD) to 1.
+    //
+    // Using the hci-socket bindings, noble's subscribeAsync() translates to:
+    //
+    // => ATT Read By Type Request    # get cccd handle and value
+    // <= ATT Read By Type Response
+    // => ATT Write Request           # set new value with bit 0 set to 1
+    //
+    // However the IC4 bike never sends the Read By Type Response.
+    //
+    // So the workaround below does this instead:
+    //
+    // => ATT Find Info Request       # get all descriptor handles
+    // <= ATT Find Info Response
+    // => ATT Write Request           # set value to 1 (0100 uint16le)
+    //
+    //await this.indoorBikeData.subscribeAsync(); // doesn't work
     await this.indoorBikeData.discoverDescriptorsAsync();
-    const cccDescriptor = this.indoorBikeData.descriptors.find(d => d.uuid == '2902');
-    if (!cccDescriptor) {
-      throw new Error('failed CCC descriptor discovery');
-    }
-    await cccDescriptor.writeValueAsync(Buffer.from([1,0])); // 0100 <- enable notifications
-
-    // option #2 -- if not able to discover descriptors, try writing handle directly
-    //const cccdHandle = 0x0031; // cccd handle taken from btmon log
-    //await this.peripheral.writeHandleAsync(cccdHandle, Buffer.from([1,0]), false);
+    const cccd = this.indoorBikeData.descriptors.find(d => d.uuid == '2902');
+    await cccd.writeValueAsync(Buffer.from([1,0])); // 0100 <- enable notifications
 
     this.state = 'connected';
   }
@@ -181,45 +181,4 @@ export function parse(data) {
     return {power, cadence};
   }
   throw new Error('unable to parse message');
-}
-
-
-/**
- * Workaround for an issue with BlueZ.
- *
- * The BlueZ stack rejects the bike's request to update connection
- * parameters causing the bike to drop its connection after 30 seconds
- *
- * Tried setting these prior to connecting, to no avail:
- *
- * /sys/debug/kernel/bluetooth/hci0/conn_min_interval
- * /sys/debug/kernel/bluetooth/hci0/conn_max_interval
- * /sys/debug/kernel/bluetooth/hci0/supervision_timeout
- *
- * Tried using noble's HCI_CHANNEL_USER implementation where noble takes
- * exclusive control of the adapter and handles the connection parameters
- * request itself. this works but since it takes exclusive control it
- * prevents bleno from working.
- *
- * The solution here is to run `hcitool lecup` with the bike's preferred
- * connection parameters after the connection is established.
- *
- * @private
- */
-async function updateConnectionParameters(peripheral, minInterval, maxInterval, latency, supervisionTimeout) {
-  const noble = peripheral._noble;
-  if (noble._bindings._hci) {
-    const handle = noble._bindings._handles[peripheral.uuid];
-    //this.noble._bindings._hci.connUpdateLe(handle, minInterval, maxInterval, latency, supervisionTimeout);
-    const cmd = '/usr/bin/hcitool'
-    const args = [
-      'lecup',
-      '--handle', `${handle}`,
-      '--min', `${Math.floor(minInterval/1.25)}`,
-      '--max', `${Math.floor(maxInterval/1.25)}`,
-      '--latency', '0',
-      '--timeout', `${Math.floor(supervisionTimeout/10)}`,
-    ]
-    await execFileAsync(cmd, args);
-  }
 }
