@@ -6,7 +6,7 @@
 
 Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other training apps. Support for other bikes can be added easily.
 
-The original Peloton Bike is now supported. Support requires a serial to USB adapter and custom wiring via RCA cables or through terminal blocks. For more details on setting up the hardware, see the [PR notes](https://github.com/ptx2/gymnasticon/pull/12). 
+The original Peloton Bike is now supported. Support requires a serial to USB adapter and custom wiring via RCA cables or through terminal blocks. For more details on setting up the hardware, see the [PR notes](https://github.com/ptx2/gymnasticon/pull/12).
 
 > Note: Peloton Bike+ is currently unsupported as it uses a USB-C connection and a (most likely) proprietary communications protocol.
 
@@ -53,8 +53,22 @@ Steps:
 
 1. Download the latest [Gymnasticon SD card image](https://github.com/ptx2/gymnasticon/releases/latest/download/gymnasticon-raspberrypi.img.xz)
 2. Write the image to the SD card using Raspberry Pi Imager or `dd`
+3. If using another bike than the default 'Flywheel', create and adapt a 'gymnasticon.json' file within the boot partition of the SD card (See below)
 3. Insert the SD card in the Raspberry Pi, power it up and wait a minute
 4. Start pedaling and Gymnasticon should appear in the Zwift device list
+
+Headless Config:
+The Gymnasticon SD card image allows headless configuration via a 'gymnasticon.json' file within the [boot partition](https://www.raspberrypi.org/documentation/configuration/boot_folder.md).
+
+The following example would configure the bike type to be IC4:
+
+```
+{
+  "bike": "ic4"
+}
+```
+
+See below for additional configuration options.
 
 Optional extra steps:
 
