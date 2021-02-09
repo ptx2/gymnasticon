@@ -1,4 +1,4 @@
-import {defaults, getBikeTypes} from './app';
+import {defaults, getBikeTypes, getReceiveTriggers} from './app';
 
 export const options = {
   'config': {
@@ -38,6 +38,12 @@ export const options = {
     describe: '<path> usb serial device path',
     type: 'string',
     default: defaults.pelotonPath,
+  },
+  'peloton-receive-trigger': {
+    describe: '<trigger> Whether to receive measurements by interval polling or push based events from a Peloton ride',
+    type: 'string',
+    choices: getReceiveTriggers(),
+    default: defaults.pelotonReceiveTrigger,
   },
   'bot-power': {
     describe: '<watts> initial bot power',
