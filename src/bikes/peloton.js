@@ -1,7 +1,6 @@
 import {once, EventEmitter} from 'events';
 import {Timer} from '../util/timer';
 import util from 'util';
-import { trace } from 'console';
 
 const SerialPort = require('serialport')
 const Delimiter = require('@serialport/parser-delimiter')
