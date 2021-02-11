@@ -41,7 +41,7 @@ export class PelotonBikeClient extends EventEmitter {
     this._port = new SerialPort(this.path, {baudRate: 19200, autoOpen: false});
     const open = util.promisify(this._port.open.bind(this._port));
     await open();
-    tracelog("Serial Opened")
+    tracelog("Serial Opened");
     this._port.on('close', this.onSerialClose);
     this._parser = this._port.pipe(new Delimiter({ delimiter: PACKET_DELIMITER }));
     this._parser.on('data', this.onSerialMessage);
