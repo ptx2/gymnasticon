@@ -1,5 +1,6 @@
 import {FlywheelBikeClient} from './flywheel';
 import {PelotonBikeClient} from './peloton';
+import {Ic4BikeClient} from './ic4';
 import {BotBikeClient} from './bot';
 import {macAddress} from '../util/mac-address';
 import fs from 'fs';
@@ -7,6 +8,7 @@ import fs from 'fs';
 const factories = {
   'flywheel': createFlywheelBikeClient,
   'peloton': createPelotonBikeClient,
+  'ic4': createIc4BikeClient,
   'bot': createBotBikeClient,
   'autodetect': autodetectBikeClient,
 };
@@ -39,6 +41,10 @@ function createFlywheelBikeClient(options, noble) {
 function createPelotonBikeClient(options, noble) {
   const {pelotonPath} = options;
   return new PelotonBikeClient(pelotonPath);
+}
+
+function createIc4BikeClient(options, noble) {
+  return new Ic4BikeClient(noble);
 }
 
 function createBotBikeClient(options, noble) {
