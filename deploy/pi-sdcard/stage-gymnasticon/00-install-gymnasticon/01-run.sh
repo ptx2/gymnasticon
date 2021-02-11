@@ -17,6 +17,7 @@ if [ ! -x "${ROOTFS_DIR}/opt/gymnasticon/node/bin/node" ] ; then
     cd /opt/gymnasticon/node
     tar zxvf /tmp/node.tar.gz --strip 1
     chown -R "${GYMNASTICON_USER}:${GYMNASTICON_GROUP}" /opt/gymnasticon
+    echo "export PATH=/opt/gymnasticon/node/bin/:\$PATH" >> /home/pi/.profile
 EOF
 fi
 
