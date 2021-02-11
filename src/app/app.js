@@ -6,17 +6,15 @@ import {once} from 'events';
 
 import {GymnasticonServer} from '../servers/ble';
 import {AntServer} from '../servers/ant';
-import {createBikeClient, getBikeTypes, getReceiveTriggers} from '../bikes';
+import {createBikeClient, getBikeTypes} from '../bikes';
 import {Simulation} from './simulation';
 import {Timer} from '../util/timer';
 import {Logger} from '../util/logger';
 import {createAntStick} from '../util/ant-stick';
 
-import {RECEIVE_TRIGGER} from '../bikes/peloton';
-
 const debuglog = util.debuglog('gymnasticon:app:app');
 
-export {getBikeTypes, getReceiveTriggers};
+export {getBikeTypes};
 
 export const defaults = {
   // bike options
@@ -31,7 +29,6 @@ export const defaults = {
 
   // peloton bike options
   pelotonPath: '/dev/ttyUSB0', // default path for usb to serial device
-  pelotonReceiveTrigger: RECEIVE_TRIGGER.EVENT, // whether to proactively poll measurements or wait for event
 
   // test bike options
   botPower: 0, // power

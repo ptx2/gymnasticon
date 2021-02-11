@@ -7,18 +7,15 @@ const Delimiter = require('@serialport/parser-delimiter')
 
 
 const MEASUREMENTS_HEX_ENUM = {
-  CADENCE: "f6f54136",
-  POWER: "f6f54439"
+  CADENCE: Buffer.from("f6f54136", 'hex'),
+  POWER: Buffer.from("f6f54439", 'hex'),
+  RESISTANCE: Buffer.from("f6f54a3f", 'hex')
 }
 const PACKET_DELIMITER = Buffer.from('f6', 'hex');
-const POLL_RATE = 250;
-const SERIAL_WRITE_TIMEOUT = 100;
+const POLL_RATE = 100;
+const SERIAL_WRITE_TIMEOUT = 50;
 const STATS_TIMEOUT = 1.0;
 
-export const RECEIVE_TRIGGER = {
-  EVENT: "event",
-  POLL: "poll"
-}
 
 const debuglog = util.debuglog('gymnasticon:bikes:peloton');
 
@@ -26,16 +23,15 @@ export class PelotonBikeClient extends EventEmitter {
   /**
    * Create a PelotonBikeClient instance.
    * @param {string} path - device path to usb serial device
-   * @param {string} receiveTrigger - whether measurements are received event or poll based
    */
-  constructor(path, receiveTrigger) {
+  constructor(path) {
     super();
     this.path = path;
-    this.receiveTrigger = receiveTrigger;
 
     this.onStatsUpdate = this.onStatsUpdate.bind(this);
     this.onSerialMessage = this.onSerialMessage.bind(this);
     this.onSerialClose = this.onSerialClose.bind(this);
+    this.pollMeasurementData = this.pollMeasurementData.bind(this);
 
     // initial stats
     this.power = 0;
@@ -44,6 +40,9 @@ export class PelotonBikeClient extends EventEmitter {
     // reset stats to 0 when the user leaves the ride screen or turns the bike off
     this.statsTimeout = new Timer(STATS_TIMEOUT, {repeats: false});
     this.statsTimeout.on('timeout', this.onStatsTimeout.bind(this));
+
+    // Let's collect interval handles for cancellation
+    this.intervalHandles = new Map();
   }
 
   async connect() {
@@ -60,13 +59,8 @@ export class PelotonBikeClient extends EventEmitter {
 
     this.state = 'connected';
 
-    debuglog(`Measurement receive trigger: ${this.receiveTrigger}`);
-    if (this.receiveTrigger === RECEIVE_TRIGGER.POLL) {
-      if ((Object.entries(MEASUREMENTS_HEX_ENUM).length * SERIAL_WRITE_TIMEOUT) > POLL_RATE) {
-        throw new Error("Max Serial Write Timeout is longer than Poll Rate.")
-      }
-      this.pollMeasurementData(this._port);
-    }
+    // Begin sending polling requests to the Peloton bike
+    this.invervalHandles['poll'] = setInterval(this.pollMeasurementData, POLL_RATE, this._port);
   }
 
   /**
@@ -102,6 +96,7 @@ export class PelotonBikeClient extends EventEmitter {
 
   onSerialClose() {
     this.emit('disconnect', {address: this.address});
+    clearInterval(this.intervalHandles['poll']);
   }
 
   onStatsTimeout() {
@@ -111,18 +106,16 @@ export class PelotonBikeClient extends EventEmitter {
   }
 
   pollMeasurementData(port) {
-    setInterval(function() {
-      for(const key of Object.keys(MEASUREMENTS_HEX_ENUM)) {
-        setTimeout(function() {
-          port.write(Buffer.from(MEASUREMENTS_HEX_ENUM[key], 'hex'), function(err) {
-            if (err) {
-              throw new Error(`Error on writing ${key}; ${err.message}`);
-            }
-          })
-          port.drain();
-        }, SERIAL_WRITE_TIMEOUT); // timeout on the serial write + drain
-      }
-    }, POLL_RATE);
+    for(const key of Object.keys(MEASUREMENTS_HEX_ENUM)) {
+      setTimeout(function() {
+        port.write(MEASUREMENTS_HEX_ENUM[key], function(err) {
+          if (err) {
+            throw new Error(`Error on writing ${key}; ${err.message}`);
+          }
+        })
+        port.drain();
+      }, SERIAL_WRITE_TIMEOUT);
+    }
   }
 }
 

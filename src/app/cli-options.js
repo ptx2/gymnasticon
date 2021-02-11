@@ -39,12 +39,6 @@ export const options = {
     type: 'string',
     default: defaults.pelotonPath,
   },
-  'peloton-receive-trigger': {
-    describe: '<trigger> Whether to receive measurements by interval polling or push based events from a Peloton ride',
-    type: 'string',
-    choices: getReceiveTriggers(),
-    default: defaults.pelotonReceiveTrigger,
-  },
   'bot-power': {
     describe: '<watts> initial bot power',
     type: 'number',
