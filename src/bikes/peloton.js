@@ -60,7 +60,7 @@ export class PelotonBikeClient extends EventEmitter {
     this.state = 'connected';
 
     // Begin sending polling requests to the Peloton bike
-    this.invervalHandles['poll'] = setInterval(this.pollMeasurementData, POLL_RATE, this._port);
+    this.intervalHandles['poll'] = setInterval(this.pollMeasurementData, POLL_RATE, this._port);
   }
 
   /**
