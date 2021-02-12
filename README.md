@@ -53,7 +53,7 @@ Steps:
 
 1. Download the latest [Gymnasticon SD card image](https://github.com/ptx2/gymnasticon/releases/latest/download/gymnasticon-raspberrypi.img.xz)
 2. Write the image to the SD card using Raspberry Pi Imager or `dd`
-3. If using another bike than the default 'Flywheel', create and adapt a 'gymnasticon.json' file within the boot partition of the SD card (See below)
+3. If using another bike than the default 'Flywheel' or 'Peloton', create and adapt a 'gymnasticon.json' file within the boot partition of the SD card (See below)
 4. Insert the SD card in the Raspberry Pi, power it up and wait a minute
 5. Start pedaling and Gymnasticon should appear in the Zwift device list
 
