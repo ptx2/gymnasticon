@@ -16,7 +16,6 @@ const POLL_RATE = 100;
 const SERIAL_WRITE_TIMEOUT = 50;
 const STATS_TIMEOUT = 1.0;
 
-
 const debuglog = util.debuglog('gymnasticon:bikes:peloton');
 const tracelog = util.debuglog('gymnasticon:bikes:peloton:trace');
 
@@ -44,6 +43,7 @@ export class PelotonBikeClient extends EventEmitter {
 
     // Let's collect interval handles for cancellation
     this.intervalHandles = new Map();
+    this.nextMetric = 0;
   }
 
   async connect() {
@@ -115,17 +115,22 @@ export class PelotonBikeClient extends EventEmitter {
   }
 
   pollMeasurementData(port) {
-    for(const key of Object.keys(MEASUREMENTS_HEX_ENUM)) {
-      setTimeout(function() {
-        port.write(MEASUREMENTS_HEX_ENUM[key], function(err) {
-          if (err) {
-            throw new Error(`Error on writing ${key}; ${err.message}`);
-          }
-        })
-        port.drain();
-      }, SERIAL_WRITE_TIMEOUT);
+    let metric = Object.keys(MEASUREMENTS_HEX_ENUM)[this.nextMetric];
+    setTimeout(function() {
+      port.write(MEASUREMENTS_HEX_ENUM[metric], function(err) {
+        if (err) {
+          throw new Error(`Error on writing ${key}; ${err.message}`);
+        }
+      })
+      port.drain();
+    }, SERIAL_WRITE_TIMEOUT);
+    if (this.nextMetric === Object.keys(MEASUREMENTS_HEX_ENUM).length -1) {
+      this.nextMetric = 0;
+    } else {
+      this.nextMetric++;
     }
   }
+
 }
 
 export function decodePeloton(bufferArray, byteLength, isPower) {
