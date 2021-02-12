@@ -4,9 +4,9 @@ import bleno from '@abandonware/bleno';
 
 import {once} from 'events';
 
-import {createBikeClient, getBikeTypes} from '../bikes';
 import {GymnasticonServer} from '../servers/ble';
 import {AntServer} from '../servers/ant';
+import {createBikeClient, getBikeTypes} from '../bikes';
 import {Simulation} from './simulation';
 import {Timer} from '../util/timer';
 import {Logger} from '../util/logger';
