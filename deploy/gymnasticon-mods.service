@@ -1,0 +1,13 @@
+[Unit]
+Description=Copy user gymnasticon.json
+ConditionPathExists=/boot/gymnasticon.json
+Before=gymnasticon.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/mv /boot/gymnasticon.json /etc/gymnasticon.json
+ExecStartPost=/bin/chmod 600 /etc/gymnasticon.json
+
+[Install]
+WantedBy=multi-user.target
