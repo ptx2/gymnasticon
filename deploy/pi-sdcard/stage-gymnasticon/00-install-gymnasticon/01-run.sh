@@ -17,6 +17,7 @@ if [ ! -x "${ROOTFS_DIR}/opt/gymnasticon/node/bin/node" ] ; then
     cd /opt/gymnasticon/node
     tar zxvf /tmp/node.tar.gz --strip 1
     chown -R "${GYMNASTICON_USER}:${GYMNASTICON_GROUP}" /opt/gymnasticon
+    echo "export PATH=/opt/gymnasticon/node/bin/:\$PATH" >> /home/pi/.profile
 EOF
 fi
 
@@ -25,6 +26,7 @@ su ${GYMNASTICON_USER} -c 'export PATH=/opt/gymnasticon/node/bin:\$PATH; /opt/gy
 EOF
 
 install -v -m 644 files/gymnasticon.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon.service"
+install -v -m 644 files/gymnasticon-mods.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon-mods.service"
 
 on_chroot <<EOF
 systemctl enable gymnasticon

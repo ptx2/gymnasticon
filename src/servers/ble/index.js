@@ -1,4 +1,5 @@
 import {CyclingPowerService} from './services/cycling-power'
+import {CyclingSpeedAndCadenceService} from './services/cycling-speed-and-cadence'
 import {BleServer} from '../../util/ble-server'
 
 export const DEFAULT_NAME = 'Gymnasticon';
@@ -14,7 +15,8 @@ export class GymnasticonServer extends BleServer {
 	 */
   constructor(bleno, name=DEFAULT_NAME) {
     super(bleno, name, [
-      new CyclingPowerService()
+      new CyclingPowerService(),
+      new CyclingSpeedAndCadenceService(),
     ])
   }
 
@@ -27,6 +29,8 @@ export class GymnasticonServer extends BleServer {
    * @param {number} measurement.crank.timestamp - timestamp at last crank event.
    */
   updateMeasurement(measurement) {
-    this.services[0].updateMeasurement(measurement)
+    for (let s of this.services) {
+      s.updateMeasurement(measurement)
+    }
   }
 }
