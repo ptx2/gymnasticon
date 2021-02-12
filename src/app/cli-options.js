@@ -1,4 +1,4 @@
-import {defaults, getBikeTypes, getReceiveTriggers} from './app';
+import {defaults, getBikeTypes} from './app';
 
 export const options = {
   'config': {
