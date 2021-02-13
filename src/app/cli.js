@@ -16,6 +16,7 @@ v${version}
 
 const argv = yargs
   .usage(`${banner}\nusage: gymnasticon [OPTIONS]`)
+  .config()
   .options(options)
   .help()
   .version()
