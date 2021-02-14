@@ -1,16 +1,28 @@
 import util from 'util';
 import {EventEmitter} from 'events';
-import {on} from 'events';
+import {scan} from '../util/ble-scan';
 import {macAddress} from '../util/mac-address';
 
 const KEISER_LOCALNAME = "M3";
-const KEISER_VALUE_MAGIC = Buffer.from([0x06]); // identifies Keiser data message
-const KEISER_VALUE_IDX_POWER = 6; // 16-bit power (watts) data offset within packet
-const KEISER_VALUE_IDX_CADENCE = 2; // 16-bit cadence (1/10 rpm) data offset within packet
+const KEISER_VALUE_MAGIC = Buffer.from([0x02, 0x01]); // identifies Keiser data message
+const KEISER_VALUE_IDX_POWER = 10; // 16-bit power (watts) data offset within packet
+const KEISER_VALUE_IDX_CADENCE = 6; // 16-bit cadence (1/10 rpm) data offset within packet
 
 const debuglog = util.debuglog('gymnasticon:bikes:keiser');
 
+/**
+ * Handles communication with Keiser bikes
+ * Developer documentation can be found at https://dev.keiser.com/mseries/direct/
+ */
+
 export class KeiserBikeClient extends EventEmitter {
+  /**
+   * Create a KeiserBikeClient instance.
+   * @param {Noble} noble - a Noble instance.
+   * @param {object} filters - filters to specify bike when more than one is present
+   * @param {string} filters.address - mac address
+   * @param {string} filters.name - device name
+   */
   constructor(noble, filters) {
     super();
     this.noble = noble;
@@ -20,28 +32,48 @@ export class KeiserBikeClient extends EventEmitter {
     this.onDisconnect = this.onDisconnect.bind(this);
   }
 
+  /**
+   * Bike behaves like a BLE beacon. Simulate connect by looking up MAC address
+   * scanning and filtering subsequent announcements from this address.
+   */
   async connect() {
     if (this.state === 'connected') {
       throw new Error('Already connected');
     }
 
     // scan
-    this.peripheral = await scanKeiser(this.noble);
+    this.filters = {};
+    this.filters.name = (v) => v == KEISER_LOCALNAME;
+    this.peripheral = await scan(this.noble, null, this.filters);
 
     this.state = 'connected';
+
+    // waiting for data
+    await this.noble.startScanningAsync(null, true);
+    this.noble.on('discover', this.onReceive);
   }
 
+  /**
+   * Get the bike's MAC address.
+   * @returns {string} mac address
+   */
   get address() {
     return macAddress(this.peripheral.address);
   }
 
+  /**
+   * Handle data received from the bike.
+   * @param {buffer} data - raw data encoded in proprietary format.
+   * @emits BikeClient#data
+   * @emits BikeClient#stats
+   * @private
+   */
   onReceive(data) {
-    this.emit('data', data);
-
     try {
-      if (data.advertisement.localName == KEISER_LOCALNAME) {
-        console.log('Found Keiser M3: ${data.advertisement.localName} ${data.address} ${data.advertisement.manufacturerData}');
+      if (data.address == this.peripheral.address) {
+        this.emit('data', data);
         const {power, cadence} = parse(data.advertisement.manufacturerData);
+        debuglog('Found Keiser M3: ', data.advertisement.localName, ' Address: ', data.address, ' Data: ', data.advertisement.manufacturerData, 'Power: ', power, 'Cadence: ', cadence);
         this.emit('stats', {power, cadence});
       }
     } catch (e) {
@@ -51,6 +83,9 @@ export class KeiserBikeClient extends EventEmitter {
     }
   }
 
+  /**
+   * Disconnect from the bike.
+   */
   async disconnect() {
     if (this.state !== 'disconnected') return;
     await this.noble.stopScanningAsync();
@@ -62,22 +97,16 @@ export class KeiserBikeClient extends EventEmitter {
   }
 }
 
-export async function scanKeiser(noble) {
-  let peripheral
-  let results = on(noble, 'discover');
-  await noble.startScanningAsync(null, true);
-  for await (const [result] of results) {
-    if (result.advertisement.localName == KEISER_LOCALNAME) {
-      peripheral = result;
-      break;
-    }
-  }
-  return peripheral;
-}
-
+/**
+ * Parse Keiser Bike Data characteristic value.
+ * @param {buffer} data - raw characteristic value.
+ * @returns {object} message - parsed message
+ * @returns {string} message.type - message type
+ * @returns {object} message.payload - message payload
+ */
 export function parse(data) {
   if (data.indexOf(KEISER_VALUE_MAGIC) === 0) {
-    const power = data.readInt16LE(KEISER_VALUE_IDX_POWER);
+    const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
     const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
     return {power, cadence};
   }
