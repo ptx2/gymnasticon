@@ -10,7 +10,7 @@ noble.on('stateChange', function(state) {
 });
 
 noble.on('discover', function(peripheral) {
-  if (peripheral.advertisement.localName == "846B216FFFD033AFE9") {
+  if (peripheral.advertisement.localName == "M3") {
     console.log('Discovered Keiser M3: ', peripheral.address);
     try {
       console.log(peripheral.advertisement.manufacturerData);
