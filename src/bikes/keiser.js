@@ -4,9 +4,9 @@ import {on} from 'events';
 import {macAddress} from '../util/mac-address';
 
 const KEISER_LOCALNAME = "M3";
-const KEISER_VALUE_MAGIC = Buffer.from([0x44]); // identifies indoor bike data message
+const KEISER_VALUE_MAGIC = Buffer.from([0x06]); // identifies Keiser data message
 const KEISER_VALUE_IDX_POWER = 6; // 16-bit power (watts) data offset within packet
-const KEISER_VALUE_IDX_CADENCE = 2; // 16-bit cadence (1/2 rpm) data offset within packet
+const KEISER_VALUE_IDX_CADENCE = 2; // 16-bit cadence (1/10 rpm) data offset within packet
 
 const debuglog = util.debuglog('gymnasticon:bikes:keiser');
 
