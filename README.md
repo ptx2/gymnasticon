@@ -88,8 +88,6 @@ Optional extra steps:
 
 ## Troubleshooting
 
-There are a couple gotchas that come up regularly.
-
 Flywheel bike
 
 * Check that there are fresh batteries in the bike (2x D batteries)
