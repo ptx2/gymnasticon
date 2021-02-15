@@ -7,6 +7,7 @@ const KEISER_LOCALNAME = "M3";
 const KEISER_VALUE_MAGIC = Buffer.from([0x02, 0x01]); // identifies Keiser data message
 const KEISER_VALUE_IDX_POWER = 10; // 16-bit power (watts) data offset within packet
 const KEISER_VALUE_IDX_CADENCE = 6; // 16-bit cadence (1/10 rpm) data offset within packet
+const KEISER_VALUE_IDX_REALTIME = 4; // Indicates whether the data present is realtime (0, or 128 to 227)
 
 const debuglog = util.debuglog('gymnasticon:bikes:keiser');
 
@@ -99,6 +100,8 @@ export class KeiserBikeClient extends EventEmitter {
 
 /**
  * Parse Keiser Bike Data characteristic value.
+ * Consider if provided value are realtime or review mode
+ * See https://dev.keiser.com/mseries/direct/#data-type
  * @param {buffer} data - raw characteristic value.
  * @returns {object} message - parsed message
  * @returns {string} message.type - message type
@@ -106,8 +109,14 @@ export class KeiserBikeClient extends EventEmitter {
  */
 export function parse(data) {
   if (data.indexOf(KEISER_VALUE_MAGIC) === 0) {
-    const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
-    const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
+    const realtime = data.indexOf(KEISER_IDX_REALTIME);
+    if (realtime === 0 || (realtime > 128 && realtime < 255)) {
+      const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
+      const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
+    } else {
+      const power = 0; // Received value was not realtime
+      const cadence = 0;
+    }
     return {power, cadence};
   }
   throw new Error('unable to parse message');
