@@ -109,7 +109,7 @@ export class KeiserBikeClient extends EventEmitter {
  */
 export function parse(data) {
   if (data.indexOf(KEISER_VALUE_MAGIC) === 0) {
-    const realtime = data.indexOf(KEISER_IDX_REALTIME);
+    const realtime = data.indexOf(KEISER_VALUE_IDX_REALTIME);
     if (realtime === 0 || (realtime > 128 && realtime < 255)) {
       const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
       const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
