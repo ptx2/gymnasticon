@@ -115,11 +115,6 @@ export function parse(data) {
       const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
       const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
       return {power, cadence};
-    } else {
-      // Review mode data received
-      const power = 0;
-      const cadence = 0;
-      return {power, cadence};
     }
   }
   throw new Error('unable to parse message');
