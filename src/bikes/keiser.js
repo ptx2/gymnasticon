@@ -109,15 +109,18 @@ export class KeiserBikeClient extends EventEmitter {
  */
 export function parse(data) {
   if (data.indexOf(KEISER_VALUE_MAGIC) === 0) {
-    const realtime = data.indexOf(KEISER_VALUE_IDX_REALTIME);
+    const realtime = data.readUInt8(KEISER_VALUE_IDX_REALTIME);
     if (realtime === 0 || (realtime > 128 && realtime < 255)) {
+      // Realtime data received
       const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
       const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
+      return {power, cadence};
     } else {
-      const power = 0; // Received value was not realtime
+      // Review mode data received
+      const power = 0;
       const cadence = 0;
+      return {power, cadence};
     }
-    return {power, cadence};
   }
   throw new Error('unable to parse message');
 }
