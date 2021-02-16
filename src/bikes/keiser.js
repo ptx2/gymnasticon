@@ -101,9 +101,9 @@ export class KeiserBikeClient extends EventEmitter {
 
   }
 
-  scanStop() {
+  async scanStop() {
     debuglog('Restarting BLE Scan');
-    this.startScanning(null, true);
+    this.startScanningAsync(null, true);
   }
 
 }
