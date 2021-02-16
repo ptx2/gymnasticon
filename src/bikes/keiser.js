@@ -52,6 +52,10 @@ export class KeiserBikeClient extends EventEmitter {
     // waiting for data
     await this.noble.startScanningAsync(null, true);
     this.noble.on('discover', this.onReceive);
+
+    // Workaround for noble stopping to scan after connect to bleno
+    // See https://github.com/noble/noble/issues/223
+    this.noble.on('scanStop', this.scanStop);
   }
 
   /**
@@ -96,6 +100,12 @@ export class KeiserBikeClient extends EventEmitter {
     this.state = 'disconnected';
 
   }
+
+  scanStop() {
+    debuglog('Restarting BLE Scan');
+    this.startScanning(null, true);
+  }
+
 }
 
 /**
