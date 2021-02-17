@@ -10,6 +10,7 @@ const KEISER_VALUE_IDX_POWER = 10; // 16-bit power (watts) data offset within pa
 const KEISER_VALUE_IDX_CADENCE = 6; // 16-bit cadence (1/10 rpm) data offset within packet
 const KEISER_VALUE_IDX_REALTIME = 4; // Indicates whether the data present is realtime (0, or 128 to 227)
 const KEISER_STATS_TIMEOUT = 2.0; // If no stats have been received within this time, reset power and cadence to 0
+const KEISER_BIKE_TIMEOUT = 300.0; // Consider bike disconnected if no stats have been received for 300 sec / 5 minutes
 
 const debuglog = util.debuglog('gymnasticon:bikes:keiser');
 
@@ -47,6 +48,10 @@ export class KeiserBikeClient extends EventEmitter {
     this.statsTimeout = new Timer(KEISER_STATS_TIMEOUT, {repeats: false});
     this.statsTimeout.on('timeout', this.onStatsTimeout.bind(this));
 
+    // Consider bike disconnected if no stats have been received for certain time
+    this.bikeTimeout = new Timer(KEISER_BIKE_TIMEOUT, {repeats: false});
+    this.bikeTimeout.on('timeout', this.onBikeTimeout.bind(this));
+
     // create filter to fix power and cadence dropouts
     this.fixDropout = createDropoutFilter();
 
@@ -82,29 +87,30 @@ export class KeiserBikeClient extends EventEmitter {
    * @private
    */
    onReceive(data) {
-   try {
-     if (data.address == this.peripheral.address) {
-       this.emit('data', data);
-       const {type, payload} = parse(data.advertisement.manufacturerData);
-       if (type === 'stats') {
-         const fixed = this.fixDropout(payload);
-         if (fixed.power !== payload.power) {
-           debuglog(`*** replaced zero power with previous power ${fixed.power}`);
+     try {
+       if (data.address == this.peripheral.address) {
+         this.emit('data', data);
+         const {type, payload} = parse(data.advertisement.manufacturerData);
+         if (type === 'stats') {
+           const fixed = this.fixDropout(payload);
+           if (fixed.power !== payload.power) {
+             debuglog(`*** replaced zero power with previous power ${fixed.power}`);
+           }
+           if (fixed.cadence !== payload.cadence) {
+             debuglog(`*** replaced zero power with previous power ${fixed.cadence}`);
+           }
+           debuglog('Found Keiser M3: ', data.advertisement.localName, ' Address: ', data.address, ' Data: ', data.advertisement.manufacturerData, 'Power: ', fixed.power, 'Cadence: ', fixed.cadence);
+           this.emit(type, fixed);
+           this.statsTimeout.reset();
+           this.bikeTimeout.reset();
          }
-         if (fixed.cadence !== payload.cadence) {
-           debuglog(`*** replaced zero power with previous power ${fixed.cadence}`);
-         }
-         debuglog('Found Keiser M3: ', data.advertisement.localName, ' Address: ', data.address, ' Data: ', data.advertisement.manufacturerData, 'Power: ', fixed.power, 'Cadence: ', fixed.cadence);
-         this.emit(type, fixed);
-         this.statsTimeout.reset();
+       }
+     } catch (e) {
+       if (!/unable to parse message/.test(e)) {
+         throw e;
        }
      }
-   } catch (e) {
-     if (!/unable to parse message/.test(e)) {
-       throw e;
-     }
    }
- }
 
 
   /**
@@ -115,6 +121,16 @@ export class KeiserBikeClient extends EventEmitter {
     debuglog('Stats timeout exceeded');
     this.emit('stats', reset);
   }
+
+  /**
+  * Consider Bike disconnected
+  */
+ onBikeTimeout() {
+   debuglog('M3 Bike disconnected');
+   this.state = 'disconnected';
+   this.emit('disconnect', {address: this.peripheral.address});
+ }
+
 
   /**
    * Restart BLE scanning while in connected state
