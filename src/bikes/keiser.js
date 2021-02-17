@@ -1,5 +1,6 @@
 import util from 'util';
 import {EventEmitter} from 'events';
+import {Timer} from '../util/timer';
 import {scan} from '../util/ble-scan';
 import {macAddress} from '../util/mac-address';
 
@@ -8,6 +9,7 @@ const KEISER_VALUE_MAGIC = Buffer.from([0x02, 0x01]); // identifies Keiser data 
 const KEISER_VALUE_IDX_POWER = 10; // 16-bit power (watts) data offset within packet
 const KEISER_VALUE_IDX_CADENCE = 6; // 16-bit cadence (1/10 rpm) data offset within packet
 const KEISER_VALUE_IDX_REALTIME = 4; // Indicates whether the data present is realtime (0, or 128 to 227)
+const KEISER_STATS_TIMEOUT = 2.0; // If no stats have been received within this time, reset power and cadence to 0
 
 const debuglog = util.debuglog('gymnasticon:bikes:keiser');
 
@@ -30,7 +32,6 @@ export class KeiserBikeClient extends EventEmitter {
     this.filters = filters;
     this.state = 'disconnected';
     this.onReceive = this.onReceive.bind(this);
-    this.onDisconnect = this.onDisconnect.bind(this);
   }
 
   /**
@@ -41,6 +42,13 @@ export class KeiserBikeClient extends EventEmitter {
     if (this.state === 'connected') {
       throw new Error('Already connected');
     }
+
+    // reset stats to 0 when bike suddenly dissapears
+    this.statsTimeout = new Timer(KEISER_STATS_TIMEOUT, {repeats: false});
+    this.statsTimeout.on('timeout', this.onStatsTimeout.bind(this));
+
+    // create filter to fix power and cadence dropouts
+    this.fixDropout = createDropoutFilter();
 
     // scan
     this.filters = {};
@@ -73,40 +81,52 @@ export class KeiserBikeClient extends EventEmitter {
    * @emits BikeClient#stats
    * @private
    */
-  onReceive(data) {
-    try {
-      if (data.address == this.peripheral.address) {
-        this.emit('data', data);
-        const {power, cadence} = parse(data.advertisement.manufacturerData);
-        debuglog('Found Keiser M3: ', data.advertisement.localName, ' Address: ', data.address, ' Data: ', data.advertisement.manufacturerData, 'Power: ', power, 'Cadence: ', cadence);
-        this.emit('stats', {power, cadence});
-      }
-    } catch (e) {
-      if (!/unable to parse message/.test(e)) {
-        throw e;
-      }
-    }
+   onReceive(data) {
+   try {
+     if (data.address == this.peripheral.address) {
+       this.emit('data', data);
+       const {type, payload} = parse(data.advertisement.manufacturerData);
+       if (type === 'stats') {
+         const fixed = this.fixDropout(payload);
+         if (fixed.power !== payload.power) {
+           debuglog(`*** replaced zero power with previous power ${fixed.power}`);
+         }
+         if (fixed.cadence !== payload.cadence) {
+           debuglog(`*** replaced zero power with previous power ${fixed.cadence}`);
+         }
+         debuglog('Found Keiser M3: ', data.advertisement.localName, ' Address: ', data.address, ' Data: ', data.advertisement.manufacturerData, 'Power: ', fixed.power, 'Cadence: ', fixed.cadence);
+         this.emit(type, fixed);
+         this.statsTimeout.reset();
+       }
+     }
+   } catch (e) {
+     if (!/unable to parse message/.test(e)) {
+       throw e;
+     }
+   }
+ }
+
+
+  /**
+   * Set power & cadence to 0 when the bike dissapears
+   */
+  onStatsTimeout() {
+    const reset = { power:0, cadence:0 };
+    debuglog('Stats timeout exceeded');
+    this.emit('stats', reset);
   }
 
   /**
-   * Disconnect from the bike.
+   * Restart BLE scanning while in connected state
    */
-  async disconnect() {
-    if (this.state !== 'disconnected') return;
-    await this.noble.stopScanningAsync();
-  }
-
-  onDisconnect() {
-    this.state = 'disconnected';
-
-  }
-
   async restartScan() {
-    // Restart BLE scanning while in connected state
-    if (this.state == 'connected') {
-      debuglog('Restarting BLE Scan');
-      this.startScanningAsync(null, true);
-    }
+    console.log("Restarting BLE Scan");
+    this.startScanningAsync(null, true, function (err) {
+      if (err) {
+        console.log("Unable to restart BLE Scan: " + err);
+      }
+    });
+
   }
 
 }
@@ -127,8 +147,39 @@ export function parse(data) {
       // Realtime data received
       const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
       const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
-      return {power, cadence};
+      return {type: 'stats', payload: {power, cadence}};
     }
   }
   throw new Error('unable to parse message');
+}
+
+/**
+ * Workaround for an issue in the Keiser Bike where it occasionally
+ * incorrectly reports zero cadence (rpm) or zero power (watts).
+ *
+ * @private
+ */
+function createDropoutFilter() {
+  let prev = null;
+
+  /**
+   * Returns stats payload with spurious zero removed.
+   * @param {object} curr - current stats payload
+   * @param {number} curr.power - power (watts)
+   * @param {number} curr.cadence - cadence (rpm)
+   * @returns {object} fixed - fixed stats payload
+   * @returns {object} fixed.power - fixed power (watts)
+   * @returns {object} fixed.cadence - cadence
+   */
+  return function (curr) {
+    let fixed = {...curr};
+    if (prev !== null && curr.power === 0 && curr.cadence > 0 && prev.power > 0) {
+      fixed.power = prev.power;
+    }
+    if (prev !== null && curr.cadence === 0 && curr.power > 0 && prev.cadence > 0) {
+      fixed.cadence = prev.cadence;
+    }
+    prev = curr;
+    return fixed;
+  }
 }
