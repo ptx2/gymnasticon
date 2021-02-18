@@ -15,6 +15,7 @@ Gymnasticon enables obsolete and/or proprietary exercise bikes to work with Zwif
 * Flywheel
 * Peloton Bike (requires an [additional cable](https://github.com/ptx2/gymnasticon/pull/12#issuecomment-696345309))
 * Schwinn IC4/IC8 aka Bowflex C6
+* Keiser M Series Bikes (M3i, M3i-TBT, M3iX)
 * LifeFitness IC5 (probably works)
 
 ## Apps and devices tested
@@ -154,7 +155,7 @@ usage: gymnasticon [OPTIONS]
 Options:
   --config                <filename> load options from json file        [string]
   --bike                  <type>
-           [string] [choices: "flywheel", "peloton", "ic4", "bot", "autodetect"]
+           [string] [choices: "flywheel", "peloton", "ic4", "keiser", "bot", "autodetect"]
                                                          [default: "autodetect"]
   --bike-connect-timeout  <seconds>                        [number] [default: 0]
   --bike-receive-timeout  <seconds>                        [number] [default: 4]

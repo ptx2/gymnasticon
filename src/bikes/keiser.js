@@ -44,7 +44,7 @@ export class KeiserBikeClient extends EventEmitter {
       throw new Error('Already connected');
     }
 
-    // reset stats to 0 when bike suddenly dissapears
+    // Reset stats to 0 when bike suddenly dissapears
     this.statsTimeout = new Timer(KEISER_STATS_TIMEOUT, {repeats: false});
     this.statsTimeout.on('timeout', this.onStatsTimeout.bind(this));
 
@@ -52,17 +52,17 @@ export class KeiserBikeClient extends EventEmitter {
     this.bikeTimeout = new Timer(KEISER_BIKE_TIMEOUT, {repeats: false});
     this.bikeTimeout.on('timeout', this.onBikeTimeout.bind(this));
 
-    // create filter to fix power and cadence dropouts
+    // Create filter to fix power and cadence dropouts
     this.fixDropout = createDropoutFilter();
 
-    // scan
+    // Scan for bike
     this.filters = {};
     this.filters.name = (v) => v == KEISER_LOCALNAME;
     this.peripheral = await scan(this.noble, null, this.filters);
 
     this.state = 'connected';
 
-    // waiting for data
+    // Waiting for data
     await this.noble.startScanningAsync(null, true);
     this.noble.on('discover', this.onReceive);
 
@@ -112,7 +112,6 @@ export class KeiserBikeClient extends EventEmitter {
      }
    }
 
-
   /**
    * Set power & cadence to 0 when the bike dissapears
    */
@@ -123,17 +122,18 @@ export class KeiserBikeClient extends EventEmitter {
   }
 
   /**
-  * Consider Bike disconnected
+  * Consider Bike disconnected after certain time
   */
- onBikeTimeout() {
-   debuglog('M3 Bike disconnected');
-   this.state = 'disconnected';
-   this.emit('disconnect', {address: this.peripheral.address});
- }
-
+  onBikeTimeout() {
+    debuglog('M3 Bike disconnected');
+    this.state = 'disconnected';
+    this.emit('disconnect', {address: this.peripheral.address});
+  }
 
   /**
    * Restart BLE scanning while in connected state
+   * Workaround for noble stopping to scan after connect to bleno
+   * See https://github.com/noble/noble/issues/223
    */
   async restartScan() {
     console.log("Restarting BLE Scan");
@@ -142,9 +142,7 @@ export class KeiserBikeClient extends EventEmitter {
         console.log("Unable to restart BLE Scan: " + err);
       }
     });
-
   }
-
 }
 
 /**
@@ -171,8 +169,7 @@ export function parse(data) {
 
 /**
  * Workaround for an issue in the Keiser Bike where it occasionally
- * incorrectly reports zero cadence (rpm) or zero power (watts).
- *
+ * incorrectly reports zero cadence (rpm) or zero power (watts)
  * @private
  */
 function createDropoutFilter() {
