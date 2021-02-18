@@ -10,7 +10,7 @@ Environment=PATH=/opt/gymnasticon/node/bin
 WorkingDirectory=/opt/gymnasticon
 User=pi
 Group=pi
-ExecStart=/opt/gymnasticon/node/bin/gymnasticon
+ExecStart=/opt/gymnasticon/node/bin/gymnasticon --config /etc/gymnasticon.json
 RestartSec=1
 Restart=always
 
