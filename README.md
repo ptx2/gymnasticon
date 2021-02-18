@@ -6,7 +6,7 @@
 
 Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other training apps. Support for other bikes can be added easily.
 
-The original Peloton Bike is now supported. Support requires a serial to USB adapter and custom wiring via RCA cables or through terminal blocks. For more details on setting up the hardware, see the [PR notes](https://github.com/ptx2/gymnasticon/pull/12). 
+The original Peloton Bike is now supported. Support requires a serial to USB adapter and custom wiring via RCA cables or through terminal blocks. For more details on setting up the hardware, see the [PR notes](https://github.com/ptx2/gymnasticon/pull/12).
 
 > Note: Peloton Bike+ is currently unsupported as it uses a USB-C connection and a (most likely) proprietary communications protocol.
 
@@ -157,6 +157,17 @@ there is a means of getting realtime-ish cadence/power data from them.
 1. Implement a bikeclient in src/bikes
 2. Add cli options to src/app/cli-options
 3. Add function to instantiate the bikeclient with the cli options to src/bikes/index.js
+
+## HOWTO: Debug issues
+
+Logging of Gymnasticon has been reduced to preserve the lifetime of the SD-card
+typically used in Raspberry Pi devices. If you need more output for debugging
+purposes, set the `NODE_DEBUG` environment variable to the desired level before
+starting Gymnasticon. For example:
+
+```
+NODE_DEBUG=gymnasticon:bike* gymnasticon --bike keiser
+```
 
 ## License
 
