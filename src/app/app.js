@@ -121,7 +121,7 @@ export class App {
     this.crank.timestamp = timestamp;
     this.crank.revolutions++;
     let {power, crank} = this;
-    this.logger.log(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} power=${power}W]`);
+    debuglog(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} power=${power}W]`);
     this.server.updateMeasurement({ power, crank });
   }
 
@@ -133,7 +133,7 @@ export class App {
 
   onBikeStats({ power, cadence }) {
     power = power > 0 ? Math.max(0, Math.round(power * this.powerScale + this.powerOffset)) : 0;
-    this.logger.log(`received stats from bike [power=${power}W cadence=${cadence}rpm]`);
+    debuglog(`received stats from bike [power=${power}W cadence=${cadence}rpm]`);
     this.statsTimeout.reset();
     this.power = power;
     this.simulation.cadence = cadence;
