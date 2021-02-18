@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+- Added Peloton active cable support (to use without tablet). [40cd8ce1](https://github.com/ptx2/gymnasticon/commit/40cd8ce1c25da335a286b4f24dfcb0b9c252952d)
+- Added support for Schwinn IC4/IC8/Bowflex C6 bike. [7f9b0958](https://github.com/ptx2/gymnasticon/commit/7f9b095887010eed5a81dc1d954b4926148b0c58)
+- Added BLE Cycling Speed and Cadence output (use non-Peloton bike with Peloton app). [991e03a7](https://github.com/ptx2/gymnasticon/commit/991e03a7c37ebe10e97f1aa50e9f6af62598ec3e)
+- Raspberry Pi headless config via /boot/gymnasticon.json. [67496df1](https://github.com/ptx2/gymnasticon/commit/67496df1fb49da8d1e684da947c7e04d850e1b79)
+
 ## 1.2.0
 - Added ANT+ Bike Power Profile output (for Garmin Fenix and other watches/bike computers). [d72804f6](https://github.com/ptx2/gymnasticon/commit/d72804f601bc7289219901468860a161183d5e2b)
 - Fix Bluetooth LE power/cadence reporting issue for Windows clients. [737f8bf5](https://github.com/ptx2/gymnasticon/commit/737f8bf5744cdee7c138c205915b7b3d26115c80)

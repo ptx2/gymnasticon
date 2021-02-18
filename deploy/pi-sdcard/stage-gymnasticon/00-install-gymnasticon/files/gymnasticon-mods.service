@@ -6,8 +6,7 @@ Before=gymnasticon.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/mv /boot/gymnasticon.json /etc/gymnasticon.json
-ExecStartPost=/bin/chmod 600 /etc/gymnasticon.json
+ExecStart=/bin/sh -c 'install -o pi -g pi -m 644 /boot/gymnasticon.json /etc/gymnasticon.json && rm -f /boot/gymnasticon.json'
 
 [Install]
 WantedBy=multi-user.target

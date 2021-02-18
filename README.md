@@ -4,11 +4,7 @@
 <img src="docs/gymnasticon.jpg">
 </p>
 
-Gymnasticon enables the obsolete Flywheel Home Bike to work with Zwift and other training apps. Support for other bikes can be added easily.
-
-The original Peloton Bike is now supported. Support requires a serial to USB adapter and custom wiring via RCA cables or through terminal blocks. For more details on setting up the hardware, see the [PR notes](https://github.com/ptx2/gymnasticon/pull/12).
-
-> Note: Peloton Bike+ is currently unsupported as it uses a USB-C connection and a (most likely) proprietary communications protocol.
+Gymnasticon enables obsolete and/or proprietary exercise bikes to work with Zwift and other training apps. Support for new bikes can be added easily. The diagram below shows an example of how it works with the Flywheel Home Bike.
 
 <p align="center">
 <img src="docs/diagram.png">
@@ -16,23 +12,35 @@ The original Peloton Bike is now supported. Support requires a serial to USB ada
 
 ## Bikes tested
 
-* Flywheel (tested)
-* Peloton Bike (Original)
+* Flywheel
+* Peloton Bike (requires an [additional cable](https://github.com/ptx2/gymnasticon/pull/12#issuecomment-696345309))
+* Schwinn IC4/IC8 aka Bowflex C6
 * LifeFitness IC5 (probably works)
 
-## Apps tested
+## Apps and devices tested
+
+Any software, bike computer or watch that supports standard Bluetooth LE and ANT+ power meter and cadence sensors should work, including:
 
 * Zwift
-* TrainerRoad (only briefly)
-* Rouvy (only briefly)
+* TrainerRoad
+* Rouvy
+* RGT
+* FulGaz
+* Peloton iOS/Android (BLE CSC cadence only)
+* Garmin Fenix (requires ANT+ stick)
+* Garmin Edge
+* Wahoo Elemnt Bolt (requires ANT+ stick)
 
 ## Platforms tested
 
+Raspberry Pi Zero W is recommended for best user experience. Any recent Linux or macOS system should be able to run Gymnasticon.
+
 * Raspbian Buster on Raspberry Pi Zero W
 * Raspbian Buster on Raspberry Pi 4
-* macOS 10.13, 10.15 (see [#4](https://github.com/ptx2/gymnasticon/issues/4))
+* macOS 10.14+
+* Debian Buster on x86-64
 
-Note: If using a Bluetooth LE bike (e.g. Flywheel) a Bluetooth LE 4.1+ adapter with multi-role capability is required.
+> Note: If using a Bluetooth LE bike (e.g. Flywheel) a Bluetooth LE 4.1+ adapter with multi-role capability is required.
 
 ## Quick Start: Install Gymnasticon SD card image
 
@@ -53,28 +61,41 @@ Steps:
 
 1. Download the latest [Gymnasticon SD card image](https://github.com/ptx2/gymnasticon/releases/latest/download/gymnasticon-raspberrypi.img.xz)
 2. Write the image to the SD card using Raspberry Pi Imager or `dd`
-3. If using another bike than the default 'Flywheel' or 'Peloton', create and adapt a 'gymnasticon.json' file within the boot partition of the SD card (See below)
+3. Optionally add a config file to the SD card (not necessary for Flywheel or Peloton, see below)
 4. Insert the SD card in the Raspberry Pi, power it up and wait a minute
 5. Start pedaling and Gymnasticon should appear in the Zwift device list
 
-Headless Config:
-The Gymnasticon SD card image allows headless configuration via a 'gymnasticon.json' file within the [boot partition](https://www.raspberrypi.org/documentation/configuration/boot_folder.md).
+Config file:
 
-The following example would configure the bike type to be IC4:
+If using another bike than Flywheel or Peloton, create and adapt a gymnasticon.json file within the [boot folder](https://www.raspberrypi.org/documentation/configuration/boot_folder.md) of the SD card.
+
+The following example configures Gymnasticon to look for a Schwinn IC4 bike and to reduce its power measurement values by 8%:
 
 ```
 {
-  "bike": "ic4"
+  "bike": "ic4",
+  "power-scale": 0.92
 }
 ```
 
-See below for additional configuration options.
+See below for additional [configuration options](#CLI-options).
 
 Optional extra steps:
 
 1. Setup [networking and remote access](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) so you can check logs, perform upgrades, and do clean shutdowns, etc.
 
 > Note: It's easiest to leave the Raspberry Pi plugged in once it's set up. Safely shutting it down requires first logging in and halting the system at the command-line with `sudo halt`.
+
+## Troubleshooting
+
+Flywheel bike
+
+* Check that there are fresh batteries in the bike (2x D batteries)
+* Check that the bike is calibrated: https://ptx2.net/apps/flytest/
+
+Peloton bike (with passive wiring)
+
+* Note that stats are only broadcast during a class or Just Ride session
 
 ## Manual install
 
@@ -101,7 +122,7 @@ To run as an unprivileged user:
     # this gives cap_net_raw+eip to all node programs not just gymnasticon
     sudo setcap cap_net_raw+eip $(eval readlink -f $(which node))
 
-To run at boot time, restart on exit and to avoid giving cap_net_raw+eip to the node binary it is recommended to run under systemd. See the `deploy/gymnasticon.service` from this repository for an example systemd unit file.
+To run at boot time, restart on exit and to avoid giving `cap_net_raw+eip` to the node binary it is recommended to run under systemd. See the `deploy/gymnasticon.service` from this repository for an example systemd unit file.
 
     sudo cp gymnasticon.service /etc/systemd/system
     sudo systemctl enable gymnasticon
@@ -113,6 +134,9 @@ To view the output of Gymnasticon running under systemd:
 
 ## CLI options
 
+> Note: The CLI options below can also be used in the config file. `--bike ic4` on
+> the command-line is the same as `{"bike":"ic4"}` in the config file.
+
 ```text
 $ gymnasticon --help
 ```
@@ -123,15 +147,15 @@ $ gymnasticon --help
 (_)/(_)
 
 Gymnasticon
-v1.2.0
+v1.3.0
 
 usage: gymnasticon [OPTIONS]
 
 Options:
   --config                <filename> load options from json file        [string]
   --bike                  <type>
-        [string] [choices: "flywheel", "peloton", "bot", "autodetect"] [default:
-                                                                   "autodetect"]
+           [string] [choices: "flywheel", "peloton", "ic4", "bot", "autodetect"]
+                                                         [default: "autodetect"]
   --bike-connect-timeout  <seconds>                        [number] [default: 0]
   --bike-receive-timeout  <seconds>                        [number] [default: 4]
   --bike-adapter          <name> for bike connection           [default: "hci0"]
@@ -161,7 +185,9 @@ Options:
 
     git clone https://github.com/ptx2/gymnasticon.git
     cd gymnasticon
+    npm run build
     npm link
+    gymnasticon --help
 
 ## HOWTO: Add support for a bike
 
