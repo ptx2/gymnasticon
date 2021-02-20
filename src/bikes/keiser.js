@@ -97,7 +97,7 @@ export class KeiserBikeClient extends EventEmitter {
              debuglog(`*** replaced zero power with previous power ${fixed.power}`);
            }
            if (fixed.cadence !== payload.cadence) {
-             debuglog(`*** replaced zero power with previous power ${fixed.cadence}`);
+             debuglog(`*** replaced zero cadence with previous cadence ${fixed.cadence}`);
            }
            debuglog('Found Keiser M3: ', data.advertisement.localName, ' Address: ', data.address, ' Data: ', data.advertisement.manufacturerData, 'Power: ', fixed.power, 'Cadence: ', fixed.cadence);
            this.emit(type, fixed);
@@ -115,9 +115,17 @@ export class KeiserBikeClient extends EventEmitter {
   /**
    * Set power & cadence to 0 when the bike dissapears
    */
-  onStatsTimeout() {
+   async onStatsTimeout() {
     const reset = { power:0, cadence:0 };
     debuglog('Stats timeout exceeded');
+    if (this.state === 'connected') {
+      console.log("Stats timeout: Restarting BLE Scan");
+      try {
+        await this.noble.startScanningAsync(null, true);
+      } catch (err) {
+        console.log("Stats timeout: Unable to restart BLE Scan: " + err);
+      }
+    }
     this.emit('stats', reset);
   }
 
@@ -127,8 +135,7 @@ export class KeiserBikeClient extends EventEmitter {
   onBikeTimeout() {
     debuglog('M3 Bike disconnected');
     this.state = 'disconnected';
-    const noop = () => {};
-    this.noble.on('scanStop', noop);
+    this.noble.off('scanStop', this.restartScan);
     this.emit('disconnect', {address: this.peripheral.address});
   }
 
