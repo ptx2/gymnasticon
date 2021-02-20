@@ -127,6 +127,8 @@ export class KeiserBikeClient extends EventEmitter {
   onBikeTimeout() {
     debuglog('M3 Bike disconnected');
     this.state = 'disconnected';
+    const noop = () => {};
+    this.noble.on('scanStop', noop);
     this.emit('disconnect', {address: this.peripheral.address});
   }
 
@@ -137,11 +139,11 @@ export class KeiserBikeClient extends EventEmitter {
    */
   async restartScan() {
     console.log("Restarting BLE Scan");
-    this.startScanningAsync(null, true, function (err) {
-      if (err) {
-        console.log("Unable to restart BLE Scan: " + err);
-      }
-    });
+    try {
+      await this.startScanningAsync(null, true);
+    } catch (err) {
+      console.log("Unable to restart BLE Scan: " + err);
+    }
   }
 }
 
