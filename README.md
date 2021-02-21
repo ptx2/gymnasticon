@@ -43,7 +43,7 @@ Raspberry Pi Zero W is recommended for best user experience. Any recent Linux or
 * macOS 10.14+
 * Debian Buster on x86-64
 
-> Note: If using a Bluetooth LE bike (e.g. Flywheel) a Bluetooth LE 4.1+ adapter with multi-role capability is required.
+> Note: If using a Bluetooth LE bike (e.g. Flywheel) a Bluetooth LE 4.1+ adapter with multi-role capability is required. All Raspberry Pi devices listed above have this capability but not every BT 4.1+ adapter is guaranteed to have it. Alternatively, two BT 4.0+ adapters can also work: one for the client (to connect to the bike) and one for the server (to receive connections from Zwift or another app).
 
 ## Quick Start: Install Gymnasticon SD card image
 
