@@ -28,10 +28,13 @@ EOF
 install -v -m 644 files/gymnasticon.json "${ROOTFS_DIR}/etc/gymnasticon.json"
 install -v -m 644 files/gymnasticon.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon.service"
 install -v -m 644 files/gymnasticon-mods.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon-mods.service"
+install -v -m 755 files/overctl "/usr/local/sbin/overctl"
 
 on_chroot <<EOF
 systemctl enable gymnasticon
 systemctl enable gymnasticon-mods
+systemctl disable syslog
+raspi-config nonint enable_overlayfs
 EOF
 
 install -v -m 644 files/motd "${ROOTFS_DIR}/etc/motd"

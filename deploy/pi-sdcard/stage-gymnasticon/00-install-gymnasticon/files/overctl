@@ -1,0 +1,85 @@
+#!/bin/bash
+
+print_usage() {
+	cat <<-TEXT
+		Usage: ${0##*/} [-h|-r|-s|-t|-w]
+		   -h, --help     This message
+		   -r, --ro       Set read-only root with overlay fs
+		   -s, --status   Show current state
+		   -t, --toggle   Toggle between -r and -w
+		   -w, --rw       Set read-write root
+	TEXT
+}
+
+main() {
+	# Check whether user requests help
+	[ "$1" = "--help" -o "$1" = "-h" ] && { print_usage; exit 0;}
+
+	# Process arg (if any)
+	case "$1" in
+		--ro|-r)	action=RO
+				;;
+		--rw|-w)	action=RW
+				;;
+		--status|-s)	action=status
+				;;
+		--toggle|-t)	action=toggle
+				;;
+		*)		print_usage
+				exit 1
+				;;
+	esac
+
+	# Check which CMDLINE is in use, this doubles as a sanity check
+	if get_overlay_conf; then
+		state=RO
+	else
+		state=RW
+	fi
+
+	if get_bootro_now; then
+		BOOTRO=yes
+	else
+		BOOTRO=no
+	fi
+
+	check_permission() {
+		# Check that we are running as root
+		[ $(id -u) -eq 0 ] || { echo "ERROR: requires root privileges" >&2; exit 1; }
+		return 0
+	}
+
+	# Take action
+	if [ "$action" = "status" ]; then
+		if get_overlay_now; then
+			echo -n "/ is currently mounted RO" >&2
+		else
+			echo -n "/ is currently mounted RW" >&2
+		fi
+
+		echo " and will be mounted $state on next boot" >&2
+		exit 0
+	elif [ "$action" = "$state" ]; then
+		echo "/ is already set to be mounted $state on next boot" >&2
+		exit 1
+	elif [ "$state" = "RO" ]; then
+		check_permission
+		disable_overlayfs
+		newstate=RW
+	elif [ "$state" = "RW" ]; then
+		check_permission
+		enable_overlayfs
+		newstate=RO
+	fi
+
+	echo "/ will be mounted $newstate on next boot" >&2
+
+	# The End
+	exit 0
+}
+
+arg1="$1"
+
+trap 'main "$arg1"' EXIT
+
+source raspi-config nonint
