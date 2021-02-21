@@ -27,6 +27,7 @@ Any software, bike computer or watch that supports standard Bluetooth LE and ANT
 * Rouvy
 * RGT
 * FulGaz
+* mPaceline
 * Peloton iOS/Android (BLE CSC cadence only)
 * Garmin Fenix (requires ANT+ stick)
 * Garmin Edge
