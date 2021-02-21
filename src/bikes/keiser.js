@@ -3,6 +3,7 @@ import {EventEmitter} from 'events';
 import {Timer} from '../util/timer';
 import {scan} from '../util/ble-scan';
 import {macAddress} from '../util/mac-address';
+import {createDropoutFilter} from '../util/dropout-filter';
 
 const KEISER_LOCALNAME = "M3";
 const KEISER_VALUE_MAGIC = Buffer.from([0x02, 0x01]); // identifies Keiser data message
@@ -181,32 +182,3 @@ export function parse(data) {
   throw new Error('unable to parse message');
 }
 
-/**
- * Workaround for an issue in the Keiser Bike where it occasionally
- * incorrectly reports zero cadence (rpm) or zero power (watts)
- * @private
- */
-function createDropoutFilter() {
-  let prev = null;
-
-  /**
-   * Returns stats payload with spurious zero removed.
-   * @param {object} curr - current stats payload
-   * @param {number} curr.power - power (watts)
-   * @param {number} curr.cadence - cadence (rpm)
-   * @returns {object} fixed - fixed stats payload
-   * @returns {object} fixed.power - fixed power (watts)
-   * @returns {object} fixed.cadence - cadence
-   */
-  return function (curr) {
-    let fixed = {...curr};
-    if (prev !== null && curr.power === 0 && curr.cadence > 0 && prev.power > 0) {
-      fixed.power = prev.power;
-    }
-    if (prev !== null && curr.cadence === 0 && curr.power > 0 && prev.cadence > 0) {
-      fixed.cadence = prev.cadence;
-    }
-    prev = curr;
-    return fixed;
-  }
-}
