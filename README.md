@@ -38,6 +38,7 @@ Raspberry Pi Zero W is recommended for best user experience. Any recent Linux or
 
 * Raspbian Buster on Raspberry Pi Zero W
 * Raspbian Buster on Raspberry Pi 4
+* Raspbian Buster on Raspberry Pi 3B+
 * macOS 10.14+
 * Debian Buster on x86-64
 
