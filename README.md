@@ -81,6 +81,14 @@ The following example configures Gymnasticon to look for a Schwinn IC4 bike and 
 }
 ```
 
+The following example configures Gymnasticon to look for a Keiser M series bike:
+
+```
+{
+  "bike": "keiser"
+}
+```
+
 See below for additional [configuration options](#CLI-options).
 
 Optional extra steps:
