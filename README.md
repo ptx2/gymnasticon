@@ -158,15 +158,15 @@ $ gymnasticon --help
 (_)/(_)
 
 Gymnasticon
-v1.3.0
+v1.4.0
 
 usage: gymnasticon [OPTIONS]
 
 Options:
   --config                <filename> load options from json file        [string]
   --bike                  <type>
-           [string] [choices: "flywheel", "peloton", "ic4", "keiser", "bot", "autodetect"]
-                                                         [default: "autodetect"]
+               [string] [choices: "flywheel", "peloton", "ic4", "keiser", "bot",
+                                           "autodetect"] [default: "autodetect"]
   --bike-connect-timeout  <seconds>                        [number] [default: 0]
   --bike-receive-timeout  <seconds>                        [number] [default: 4]
   --bike-adapter          <name> for bike connection           [default: "hci0"]
