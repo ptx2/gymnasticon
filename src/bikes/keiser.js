@@ -58,7 +58,7 @@ export class KeiserBikeClient extends EventEmitter {
     // Determine bike firmware version and set stats timeout
     var bikestatstimeout = KEISER_STATS_TIMEOUT_OLD; // Fallback for unknown firmware version
     try {
-      bikestatstimeout = bikeVersion(this.peripheral.advertisement.manufacturerData);
+      bikestatstimeout = bikeVersion(this.peripheral.advertisement.manufacturerData).timeout;
     } catch (e) {
       console.log("Keiser M3 bike: Unknown version detected");
       this.onBikeTimeout();
@@ -195,7 +195,7 @@ export function bikeVersion(data) {
       }
     }
     console.log("Keiser M3 bike version: ", version, " (Stats Timeout: ", timeout, " sec.)");
-    return timeout;
+    return { version, timeout };
   }
   throw new Error('unable to parse bike version');
 }
