@@ -16,14 +16,25 @@ test('logs messages at and above the specified level', t => {
   t.end();
 });
 
-test('prepends current timestamp to log messages', t => {
+test('message level can be used in formatting', t => {
   const fn = sinon.spy();
-  const logger = new Logger({logFunction: fn, level: 'info'});
+  const logger = new Logger({logFunction: fn, level: 'warning'});
+  logger.warning('a');
+  t.ok(fn.calledWith('warning', 'a'), 'level is first argument');
+  logger.error('a');
+  t.ok(fn.calledWith('error', 'a'), 'level is first argument');
+  t.end();
+});
+
+test('logs to console with timestamp by default', t => {
+  const fn = sinon.stub(console, 'log');
+  const logger = new Logger({level: 'info'});
   const now = new Date();
   const timestamp = `[${now.toISOString()}]`;
   const clock = sinon.useFakeTimers(now.getTime());
   logger.info('a', 'b');
   clock.restore();
+  sinon.restore();
   t.ok(fn.calledOnce);
   t.ok(fn.calledWith(timestamp, 'a', 'b'));
   t.end();
