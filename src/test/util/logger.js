@@ -15,3 +15,23 @@ test('logs messages at and above the specified level', t => {
   t.equal(fn.callCount, 2, 'error is logged');
   t.end();
 });
+
+test('prepends current timestamp to log messages', t => {
+  const fn = sinon.spy();
+  const logger = new Logger({logFunction: fn, level: 'info'});
+  const now = new Date();
+  const timestamp = `[${now.toISOString()}]`;
+  const clock = sinon.useFakeTimers(now.getTime());
+  logger.info('a', 'b');
+  clock.restore();
+  t.ok(fn.calledOnce);
+  t.ok(fn.calledWith(timestamp, 'a', 'b'));
+  t.end();
+});
+
+test('throws when log level is unrecognized', t => {
+  t.throws(() => {
+    new Logger({level: 'does-not-exist'});
+  }, /unrecognized/);
+  t.end();
+});
