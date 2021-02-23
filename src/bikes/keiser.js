@@ -11,9 +11,9 @@ const KEISER_VALUE_IDX_CADENCE = 6; // 16-bit cadence (1/10 rpm) data offset wit
 const KEISER_VALUE_IDX_REALTIME = 4; // Indicates whether the data present is realtime (0, or 128 to 227)
 const KEISER_VALUE_IDX_VMAJOR = 2; // 8-bit Version Major data offset within packet
 const KEISER_VALUE_IDX_VMINOR = 3; // 8-bit Version Major data offset within packet
-const KEISER_STATS_NEWVER_MINOR = 30; // Version Minor when broeadcast interval was changed from ~ 2 sec to ~ 0.3 sec
-const KEISER_STATS_TIMEOUT_OLD = 7.0; // Old Bike: If no stats have been received within 7 sec, reset power and cadence to 0
-const KEISER_STATS_TIMEOUT_NEW = 1.0; // New Bike: If no stats have been received within 1 sec, reset power and cadence to 0
+const KEISER_STATS_NEWVER_MINOR = 30; // Version Minor when broadcast interval was changed from ~ 2 sec to ~ 0.3 sec
+const KEISER_STATS_TIMEOUT_OLD = 7.0; // Old Bike: If no stats received within 7 sec, reset power and cadence to 0
+const KEISER_STATS_TIMEOUT_NEW = 1.0; // New Bike: If no stats received within 1 sec, reset power and cadence to 0
 const KEISER_BIKE_TIMEOUT = 60.0; // Consider bike disconnected if no stats have been received for 60 sec / 1 minutes
 
 const debuglog = util.debuglog('gymnasticon:bikes:keiser');
@@ -187,17 +187,14 @@ export function bikeVersion(data) {
   if (data.indexOf(KEISER_VALUE_MAGIC) === 0) {
     const major = data.readUInt8(KEISER_VALUE_IDX_VMAJOR);
     const minor = data.readUInt8(KEISER_VALUE_IDX_VMINOR);
-
     version = major.toString(16) + "." + minor.toString(16);
-    if (major === 6) {
-      if (minor >= parseInt(KEISER_STATS_NEWVER_MINOR, 16)) {
-        timeout = KEISER_STATS_TIMEOUT_NEW;
-      }
+    if ((major === 6) && (minor >= parseInt(KEISER_STATS_NEWVER_MINOR, 16))) {
+      timeout = KEISER_STATS_TIMEOUT_NEW;
     }
-    console.log("Keiser M3 bike version: ", version, " (Stats Timeout: ", timeout, " sec.)");
+    console.log("Keiser M3 bike version: ", version, " (Stats timeout: ", timeout, " sec.)");
     return { version, timeout };
   }
-  throw new Error('unable to parse bike version');
+  throw new Error('unable to parse bike version data');
 }
 
 /**
