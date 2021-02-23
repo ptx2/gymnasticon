@@ -26,6 +26,22 @@ test('message level can be used in formatting', t => {
   t.end();
 });
 
+test('levels can be customized', t => {
+  const levels = ['foo', 'bar', 'baz'];
+  const fn = sinon.spy();
+  const logger = new Logger({logFunction: fn, level: 'bar', levels});
+  logger.foo('a');
+  t.ok(fn.notCalled);
+  logger.bar('a');
+  t.ok(fn.calledWith('bar', 'a'));
+  logger.baz('a');
+  t.ok(fn.calledWith('baz', 'a'));
+  t.throws(() => {
+    const logger = new Logger({level: 'quux', levels});
+  }, /unrecognized/);
+  t.end();
+});
+
 test('logs to console with timestamp by default', t => {
   const fn = sinon.stub(console, 'log');
   const logger = new Logger({level: 'info'});
