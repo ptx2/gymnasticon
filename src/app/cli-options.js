@@ -1,4 +1,4 @@
-import {defaults, getBikeTypes} from './app';
+import {defaults, getBikeTypes, getDefaultLogLevels} from './app';
 
 export const options = {
   'config': {
@@ -87,5 +87,12 @@ export const options = {
     describe: '<value> add this value to watts',
     type: 'number',
     default: defaults.powerOffset,
+  },
+
+  'log-level': {
+    describe: '<level> log level',
+    type: 'string',
+    choices: getDefaultLogLevels(),
+    default: defaults.logLevel,
   }
 };

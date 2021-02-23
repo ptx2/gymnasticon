@@ -9,12 +9,10 @@ import {AntServer} from '../servers/ant';
 import {createBikeClient, getBikeTypes} from '../bikes';
 import {Simulation} from './simulation';
 import {Timer} from '../util/timer';
-import {Logger} from '../util/logger';
+import {Logger, getDefaultLogLevels} from '../util/logger';
 import {createAntStick} from '../util/ant-stick';
 
-const debuglog = util.debuglog('gymnasticon:app:app');
-
-export {getBikeTypes};
+export {getBikeTypes, getDefaultLogLevels};
 
 export const defaults = {
   // bike options
@@ -47,6 +45,9 @@ export const defaults = {
   // power adjustment (to compensate for inaccurate power measurements on bike)
   powerScale: 1.0, // multiply power by this
   powerOffset: 0.0, // add this to power
+
+  // log level
+  logLevel: 'info',
 };
 
 /**
@@ -72,7 +73,7 @@ export class App {
       process.env['NOBLE_MULTI_ROLE'] = '1'
     }
 
-    this.logger = new Logger();
+    this.logger = new Logger({level: opts.logLevel});
     this.bike = createBikeClient(opts, noble);
     this.simulation = new Simulation();
     this.server = new GymnasticonServer(bleno, opts.serverName);
@@ -101,11 +102,11 @@ export class App {
       if (state !== 'poweredOn')
         throw new Error(`Bluetooth adapter state: ${state}`);
 
-      this.logger.log('connecting to bike...');
+      this.logger.info('connecting to bike...');
       this.connectTimeout.reset();
       await this.bike.connect();
       this.connectTimeout.cancel();
-      this.logger.log(`bike connected ${this.bike.address}`);
+      this.logger.info(`bike connected ${this.bike.address}`);
       this.server.start();
       this.startAnt();
       this.pingInterval.reset();
@@ -121,19 +122,19 @@ export class App {
     this.crank.timestamp = timestamp;
     this.crank.revolutions++;
     let {power, crank} = this;
-    this.logger.log(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} power=${power}W]`);
+    this.logger.info(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} power=${power}W]`);
     this.server.updateMeasurement({ power, crank });
   }
 
   onPingInterval() {
-    debuglog(`pinging app since no stats or pedal strokes for ${this.pingInterval.interval}s`);
+    this.logger.debug(`pinging app since no stats or pedal strokes for ${this.pingInterval.interval}s`);
     let {power, crank} = this;
     this.server.updateMeasurement({ power, crank });
   }
 
   onBikeStats({ power, cadence }) {
     power = power > 0 ? Math.max(0, Math.round(power * this.powerScale + this.powerOffset)) : 0;
-    this.logger.log(`received stats from bike [power=${power}W cadence=${cadence}rpm]`);
+    this.logger.info(`received stats from bike [power=${power}W cadence=${cadence}rpm]`);
     this.statsTimeout.reset();
     this.power = power;
     this.simulation.cadence = cadence;
@@ -143,23 +144,23 @@ export class App {
   }
 
   onBikeStatsTimeout() {
-    this.logger.log(`timed out waiting for bike stats after ${this.statsTimeout.interval}s`);
+    this.logger.info(`timed out waiting for bike stats after ${this.statsTimeout.interval}s`);
     process.exit(0);
   }
 
   onBikeDisconnect({ address }) {
-    this.logger.log(`bike disconnected ${address}`);
+    this.logger.info(`bike disconnected ${address}`);
     process.exit(0);
   }
 
   onBikeConnectTimeout() {
-    this.logger.log(`bike connection timed out after ${this.connectTimeout.interval}s`);
+    this.logger.info(`bike connection timed out after ${this.connectTimeout.interval}s`);
     process.exit(1);
   }
 
   startAnt() {
     if (!this.antStick.is_present()) {
-      this.logger.log('no ANT+ stick found');
+      this.logger.info('no ANT+ stick found');
       return;
     }
     if (!this.antStick.open()) {
@@ -168,7 +169,7 @@ export class App {
   }
 
   onAntStickStartup() {
-    this.logger.log('ANT+ stick opened');
+    this.logger.info('ANT+ stick opened');
     this.antServer.start();
   }
 }
