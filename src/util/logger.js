@@ -4,9 +4,6 @@ const defaults = {
   levels: ['debug', 'info', 'warning', 'error'],
 };
 
-/**
- * Timestamped logger.
- */
 export class Logger {
   /**
    * Create a Logger instance.
@@ -17,7 +14,7 @@ export class Logger {
    *
    * @param {object} options
    * @param {function} options.logFunction - callback that formats and writes the message
-   * @param {string} options.level - log level (msgs below this level are not logged)
+   * @param {string} options.level - log level (messages below this level are not logged)
    * @param {string[]} options.levels - log levels
    */
   constructor(options = {}) {
