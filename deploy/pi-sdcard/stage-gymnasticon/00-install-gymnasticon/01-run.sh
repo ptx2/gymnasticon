@@ -34,7 +34,12 @@ install -v -m 755 files/overctl "${ROOTFS_DIR}/usr/local/sbin/overctl"
 on_chroot <<EOF
 systemctl enable gymnasticon
 systemctl enable gymnasticon-mods
-systemctl disable syslog
+
+dphys-swapfile swapoff
+dphys-swapfile uninstall
+systemctl disable dphys-swapfile.service
+apt-get remove -y --purge logrotate fake-hwclock rsyslog
+
 raspi-config nonint enable_overlayfs
 EOF
 
