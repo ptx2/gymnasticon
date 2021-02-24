@@ -9,8 +9,8 @@ const KEISER_VALUE_MAGIC = Buffer.from([0x02, 0x01]); // identifies Keiser data 
 const KEISER_VALUE_IDX_POWER = 10; // 16-bit power (watts) data offset within packet
 const KEISER_VALUE_IDX_CADENCE = 6; // 16-bit cadence (1/10 rpm) data offset within packet
 const KEISER_VALUE_IDX_REALTIME = 4; // Indicates whether the data present is realtime (0, or 128 to 227)
-const KEISER_VALUE_IDX_VMAJOR = 2; // 8-bit Version Major data offset within packet
-const KEISER_VALUE_IDX_VMINOR = 3; // 8-bit Version Major data offset within packet
+const KEISER_VALUE_IDX_VER_MAJOR = 2; // 8-bit Version Major data offset within packet
+const KEISER_VALUE_IDX_VER_MINOR = 3; // 8-bit Version Major data offset within packet
 const KEISER_STATS_NEWVER_MINOR = 30; // Version Minor when broadcast interval was changed from ~ 2 sec to ~ 0.3 sec
 const KEISER_STATS_TIMEOUT_OLD = 7.0; // Old Bike: If no stats received within 7 sec, reset power and cadence to 0
 const KEISER_STATS_TIMEOUT_NEW = 1.0; // New Bike: If no stats received within 1 sec, reset power and cadence to 0
@@ -56,12 +56,12 @@ export class KeiserBikeClient extends EventEmitter {
     this.state = 'connected';
 
     // Determine bike firmware version and set stats timeout
-    var bikestatstimeout = KEISER_STATS_TIMEOUT_OLD; // Fallback for unknown firmware version
+    let bikestatstimeout = KEISER_STATS_TIMEOUT_OLD; // Fallback for unknown firmware version
     try {
       bikestatstimeout = bikeVersion(this.peripheral.advertisement.manufacturerData).timeout;
     } catch (e) {
       console.log("Keiser M3 bike: Unknown version detected");
-      this.onBikeTimeout();
+      this.onBikeTimeout(); // Disconnect as this data cannot be handled
     }
 
     // Reset stats to 0 when bike suddenly dissapears
@@ -182,11 +182,11 @@ export class KeiserBikeClient extends EventEmitter {
  * @returns {object} timeout - stats timeout for this bike version
  */
 export function bikeVersion(data) {
-  var version = "Unknown";
-  var timeout = KEISER_STATS_TIMEOUT_OLD;
+  let version = "Unknown";
+  let timeout = KEISER_STATS_TIMEOUT_OLD;
   if (data.indexOf(KEISER_VALUE_MAGIC) === 0) {
-    const major = data.readUInt8(KEISER_VALUE_IDX_VMAJOR);
-    const minor = data.readUInt8(KEISER_VALUE_IDX_VMINOR);
+    const major = data.readUInt8(KEISER_VALUE_IDX_VER_MAJOR);
+    const minor = data.readUInt8(KEISER_VALUE_IDX_VER_MINOR);
     version = major.toString(16) + "." + minor.toString(16);
     if ((major === 6) && (minor >= parseInt(KEISER_STATS_NEWVER_MINOR, 16))) {
       timeout = KEISER_STATS_TIMEOUT_NEW;
