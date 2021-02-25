@@ -41,6 +41,7 @@ systemctl disable dphys-swapfile.service
 apt-get remove -y --purge logrotate fake-hwclock rsyslog
 
 raspi-config nonint enable_overlayfs
+sed -i "s/vfat    defaults    /vfat    defaults,ro /" /etc/fstab
 EOF
 
 install -v -m 644 files/motd "${ROOTFS_DIR}/etc/motd"
