@@ -1,0 +1,12 @@
+#!/bin/bash
+
+main() {
+  if get_overlay_now; then
+    mount -o remount,ro /boot
+    echo "Mounted /boot as RO" >&2
+  fi
+}
+
+trap 'main' EXIT
+
+source raspi-config nonint

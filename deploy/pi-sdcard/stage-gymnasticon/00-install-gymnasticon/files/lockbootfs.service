@@ -1,0 +1,13 @@
+[Unit]
+Description=Lock /boot filesystem if / is an overlayfs in RO mode
+After=network.target
+Before=rc-local.service
+ConditionFileNotEmpty=/usr/local/sbin/lockbootfs
+
+[Service]
+ExecStart=/usr/local/sbin/lockbootfs
+Type=oneshot
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
