@@ -1,7 +1,8 @@
 [Unit]
 Description=Lock /boot filesystem if / is an overlayfs in RO mode
-After=network.target
-Before=rc-local.service
+Before=dbus-fi.w1.wpa_supplicant1.service
+Before=sshswitch.service
+Before=gymnasticon-mods.service
 ConditionFileNotEmpty=/usr/local/sbin/lockbootfs
 
 [Service]
