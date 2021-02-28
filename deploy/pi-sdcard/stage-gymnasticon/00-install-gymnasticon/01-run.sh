@@ -29,21 +29,20 @@ EOF
 install -v -m 644 files/gymnasticon.json "${ROOTFS_DIR}/etc/gymnasticon.json"
 install -v -m 644 files/gymnasticon.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon.service"
 install -v -m 644 files/gymnasticon-mods.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon-mods.service"
-install -v -m 644 files/lockbootfs.service "${ROOTFS_DIR}/etc/systemd/system/lockbootfs.service"
+install -v -m 644 files/lockrootfs.service "${ROOTFS_DIR}/etc/systemd/system/lockrootfs.service"
 install -v -m 755 files/overctl "${ROOTFS_DIR}/usr/local/sbin/overctl"
-install -v -m 755 files/lockbootfs "${ROOTFS_DIR}/usr/local/sbin/lockbootfs"
+install -v -m 755 files/lockrootfs "${ROOTFS_DIR}/usr/local/sbin/lockrootfs"
 
 on_chroot <<EOF
 systemctl enable gymnasticon
 systemctl enable gymnasticon-mods
-systemctl enable lockbootfs
+systemctl enable lockrootfs
 
 dphys-swapfile swapoff
 dphys-swapfile uninstall
 systemctl disable dphys-swapfile.service
 apt-get remove -y --purge logrotate fake-hwclock rsyslog
 
-raspi-config nonint enable_overlayfs
 EOF
 
 install -v -m 644 files/motd "${ROOTFS_DIR}/etc/motd"
