@@ -1,6 +1,6 @@
 [Unit]
 Description=Place / filesystem into overlayfs and mount /boot filesystem in RO mode
-Before=dbus-fi.w1.wpa_supplicant1.service
+Before=raspberrypi-net-mods.service
 Before=gymnasticon-mods.service
 ConditionFileNotEmpty=/usr/local/sbin/lockrootfs
 

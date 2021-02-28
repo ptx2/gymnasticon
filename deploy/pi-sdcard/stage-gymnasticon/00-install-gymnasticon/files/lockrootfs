@@ -4,12 +4,9 @@ main() {
   if get_overlay_now; then
     echo "Already mounted as RO" >&2
   else
-    . /lib/lsb/init-functions
-    log_daemon_msg "Starting to place root and boot filesystems into read-only mode"
+    echo "Starting to place root and boot filesystems into read-only mode"
     enable_overlayfs
     sed -i "s/vfat    defaults    /vfat    defaults,ro /" /etc/fstab
-    mount -o remount,ro /boot
-    log_end_msg $?
     reboot
   fi
 }
