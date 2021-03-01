@@ -19,6 +19,7 @@ if [ ! -x "${ROOTFS_DIR}/opt/gymnasticon/node/bin/node" ] ; then
     chown -R "${GYMNASTICON_USER}:${GYMNASTICON_GROUP}" /opt/gymnasticon
     echo "export PATH=/opt/gymnasticon/node/bin:\$PATH" >> /home/pi/.profile
     echo "overctl -s" >> /home/pi/.profile
+    echo "raspi-config nonint get_overlay_now || export PS1=\"(rw-mode) \"\$PS1" >> /home/pi/.profile
 EOF
 fi
 
