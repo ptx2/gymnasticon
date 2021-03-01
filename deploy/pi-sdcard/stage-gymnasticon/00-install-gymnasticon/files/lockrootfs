@@ -6,7 +6,8 @@ main() {
   else
     echo "Starting to place root and boot filesystems into read-only mode"
     enable_overlayfs
-    sed -i "s/vfat    defaults    /vfat    defaults,ro /" /etc/fstab
+    sed -i "s#vfat    defaults    #vfat    defaults,ro #" /etc/fstab
+    sed -i "s#ExecStart=/bin/mv#ExecStart=/bin/cp#" /lib/systemd/system/raspberrypi-net-mods.service
     reboot
   fi
 }
