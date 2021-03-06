@@ -89,7 +89,9 @@ A clean shutdown of Gymnasticon is therefore not necessary. Just keep your Raspb
 
 It is still possible to setup [networking and remote access](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) so you can check logs, or participate in development work. But this mode is not recommended for typical users.
 
-> Note: In contrary to a stock Pi OS image the `wpa_supplicant.conf` file has to remain in the "boot" partition. It is therefore possible to read the Wifi password - if used - in clear-text from this file beyond the initial boot. 
+> Note: In contrary to a stock Pi OS image the `wpa_supplicant.conf` file has to remain in the "boot" partition. It is therefore possible to read the Wifi password - if used - in clear-text from this file beyond the initial boot.
+
+You can change the root filesystem between read-only and read-write mode, but also show the current mode using the command `overctl`. 
 
 ## Troubleshooting
 
