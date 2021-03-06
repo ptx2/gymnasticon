@@ -28,7 +28,12 @@ install -v -m 644 files/gymnasticon.json "${ROOTFS_DIR}/etc/gymnasticon.json"
 install -v -m 644 files/gymnasticon.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon.service"
 install -v -m 644 files/gymnasticon-mods.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon-mods.service"
 
+install -v -m 644 files/watchdog.conf "${ROOTFS_DIR}/etc/watchdog.conf"
+
 on_chroot <<EOF
+echo 'dtparam=watchdog=on' >> /boot/config.txt
+systemctl enable watchdog
+
 systemctl enable gymnasticon
 systemctl enable gymnasticon-mods
 EOF
