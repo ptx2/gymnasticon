@@ -81,11 +81,15 @@ The following example configures Gymnasticon to look for a Schwinn IC4 bike and 
 
 See below for additional [configuration options](#CLI-options).
 
-Optional extra steps:
+### Gymnasticon SD card image in read-only mode
 
-1. Setup [networking and remote access](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) so you can check logs, perform upgrades, and do clean shutdowns, etc.
+During first boot Gymnasticon enables the [Overlay Filesystem](https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html) for the root filesystem ("/") and mounts "/boot" as read-only. This reduces the risk of fatal filesystem corruption as result of e.g. power failures, but also extends the lifetime of the SD card by minimizing wear.
 
-> Note: It's easiest to leave the Raspberry Pi plugged in once it's set up. Safely shutting it down requires first logging in and halting the system at the command-line with `sudo halt`.
+A clean shutdown of Gymnasticon is therefore not necessary. Just keep your Raspberry Pi plugged in and running.
+
+It is still possible to setup [networking and remote access](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) so you can check logs, or participate in development work. But this mode is not recommended for typical users.
+
+> Note: In contrary to a stock Pi OS image the `wpa_supplicant.conf` file has to remain in the "boot" partition. It is therefore possible to read the Wifi password - if used - in clear-text from this file beyond the initial boot. 
 
 ## Troubleshooting
 
