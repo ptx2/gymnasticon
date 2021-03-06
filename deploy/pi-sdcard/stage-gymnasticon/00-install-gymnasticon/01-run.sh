@@ -8,9 +8,8 @@ GYMNASTICON_GROUP=${FIRST_USER_NAME}
 if [ ! -x "${ROOTFS_DIR}/opt/gymnasticon/node/bin/node" ] ; then
   TMPD=$(mktemp -d)
   trap 'rm -rf $TMPD' EXIT
-  cd $TMPD
-  curl -Lo node.tar.gz ${NODE_URL}
-  sha256sum -c <(echo "$NODE_SHASUM256 node.tar.gz")
+  curl -Lo $TMPD/node.tar.gz ${NODE_URL}
+  sha256sum -c <(echo "$NODE_SHASUM256 $TMPD/node.tar.gz")
   install -v -m 644 "$TMPD/node.tar.gz" "${ROOTFS_DIR}/tmp/node.tar.gz"
   on_chroot <<EOF
     mkdir -p /opt/gymnasticon/node
