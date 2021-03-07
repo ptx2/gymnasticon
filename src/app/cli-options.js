@@ -42,22 +42,22 @@ export const options = {
   'bot-power': {
     describe: '<watts> initial bot power',
     type: 'number',
-    default: defaults.testPower,
+    default: defaults.botPower,
   },
   'bot-cadence': {
     describe: '<rpm> initial bot cadence',
     type: 'number',
-    default: defaults.testCadence,
+    default: defaults.botCadence,
   },
   'bot-host': {
     describe: '<host> for power/cadence control over udp',
     type: 'string',
-    default: defaults.testHost,
+    default: defaults.botHost,
   },
   'bot-port': {
     describe: '<port> for power/cadence control over udp',
     type: 'number',
-    default: defaults.testPort,
+    default: defaults.botPort,
   },
 
   'server-adapter': {

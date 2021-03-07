@@ -8,9 +8,8 @@ GYMNASTICON_GROUP=${FIRST_USER_NAME}
 if [ ! -x "${ROOTFS_DIR}/opt/gymnasticon/node/bin/node" ] ; then
   TMPD=$(mktemp -d)
   trap 'rm -rf $TMPD' EXIT
-  cd $TMPD
-  curl -Lo node.tar.gz ${NODE_URL}
-  sha256sum -c <(echo "$NODE_SHASUM256 node.tar.gz")
+  curl -Lo $TMPD/node.tar.gz ${NODE_URL}
+  sha256sum -c <(echo "$NODE_SHASUM256 $TMPD/node.tar.gz")
   install -v -m 644 "$TMPD/node.tar.gz" "${ROOTFS_DIR}/tmp/node.tar.gz"
   on_chroot <<EOF
     mkdir -p /opt/gymnasticon/node
@@ -34,7 +33,12 @@ install -v -m 644 files/gymnasticon-mods.service "${ROOTFS_DIR}/etc/systemd/syst
 install -v -m 644 files/lockrootfs.service "${ROOTFS_DIR}/etc/systemd/system/lockrootfs.service"
 install -v -m 755 files/overctl "${ROOTFS_DIR}/usr/local/sbin/overctl"
 
+install -v -m 644 files/watchdog.conf "${ROOTFS_DIR}/etc/watchdog.conf"
+
 on_chroot <<EOF
+echo 'dtparam=watchdog=on' >> /boot/config.txt
+systemctl enable watchdog
+
 systemctl enable gymnasticon
 systemctl enable gymnasticon-mods
 
