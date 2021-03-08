@@ -1,7 +1,9 @@
 [Unit]
 Description=Place / filesystem into overlayfs
-Before=raspberrypi-net-mods.service
+After=raspberrypi-net-mods.service
+After=sshswitch.service
 Before=gymnasticon-mods.service
+ConditionPathExists=!/boot/no_read_only
 
 [Service]
 ExecStart=raspi-config nonint enable_overlayfs
