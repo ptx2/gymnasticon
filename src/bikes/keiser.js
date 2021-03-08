@@ -3,14 +3,19 @@ import {EventEmitter} from 'events';
 import {Timer} from '../util/timer';
 import {scan} from '../util/ble-scan';
 import {macAddress} from '../util/mac-address';
+import {createDropoutFilter} from '../util/dropout-filter';
 
 const KEISER_LOCALNAME = "M3";
 const KEISER_VALUE_MAGIC = Buffer.from([0x02, 0x01]); // identifies Keiser data message
 const KEISER_VALUE_IDX_POWER = 10; // 16-bit power (watts) data offset within packet
 const KEISER_VALUE_IDX_CADENCE = 6; // 16-bit cadence (1/10 rpm) data offset within packet
 const KEISER_VALUE_IDX_REALTIME = 4; // Indicates whether the data present is realtime (0, or 128 to 227)
-const KEISER_STATS_TIMEOUT = 2.0; // If no stats have been received within this time, reset power and cadence to 0
-const KEISER_BIKE_TIMEOUT = 300.0; // Consider bike disconnected if no stats have been received for 300 sec / 5 minutes
+const KEISER_VALUE_IDX_VER_MAJOR = 2; // 8-bit Version Major data offset within packet
+const KEISER_VALUE_IDX_VER_MINOR = 3; // 8-bit Version Major data offset within packet
+const KEISER_STATS_NEWVER_MINOR = 30; // Version Minor when broadcast interval was changed from ~ 2 sec to ~ 0.3 sec
+const KEISER_STATS_TIMEOUT_OLD = 7.0; // Old Bike: If no stats received within 7 sec, reset power and cadence to 0
+const KEISER_STATS_TIMEOUT_NEW = 1.0; // New Bike: If no stats received within 1 sec, reset power and cadence to 0
+const KEISER_BIKE_TIMEOUT = 60.0; // Consider bike disconnected if no stats have been received for 60 sec / 1 minutes
 
 const debuglog = util.debuglog('gymnasticon:bikes:keiser');
 
@@ -44,8 +49,24 @@ export class KeiserBikeClient extends EventEmitter {
       throw new Error('Already connected');
     }
 
+    // Scan for bike
+    this.filters = {};
+    this.filters.name = (v) => v == KEISER_LOCALNAME;
+    this.peripheral = await scan(this.noble, null, this.filters);
+
+    this.state = 'connected';
+
+    // Determine bike firmware version and set stats timeout
+    let bikestatstimeout = KEISER_STATS_TIMEOUT_OLD; // Fallback for unknown firmware version
+    try {
+      bikestatstimeout = bikeVersion(this.peripheral.advertisement.manufacturerData).timeout;
+    } catch (e) {
+      console.log("Keiser M3 bike: Unknown version detected");
+      this.onBikeTimeout(); // Disconnect as this data cannot be handled
+    }
+
     // Reset stats to 0 when bike suddenly dissapears
-    this.statsTimeout = new Timer(KEISER_STATS_TIMEOUT, {repeats: false});
+    this.statsTimeout = new Timer(bikestatstimeout, {repeats: false});
     this.statsTimeout.on('timeout', this.onStatsTimeout.bind(this));
 
     // Consider bike disconnected if no stats have been received for certain time
@@ -54,13 +75,6 @@ export class KeiserBikeClient extends EventEmitter {
 
     // Create filter to fix power and cadence dropouts
     this.fixDropout = createDropoutFilter();
-
-    // Scan for bike
-    this.filters = {};
-    this.filters.name = (v) => v == KEISER_LOCALNAME;
-    this.peripheral = await scan(this.noble, null, this.filters);
-
-    this.state = 'connected';
 
     // Waiting for data
     await this.noble.startScanningAsync(null, true);
@@ -160,6 +174,31 @@ export class KeiserBikeClient extends EventEmitter {
 }
 
 /**
+ * Determine Keiser Bike Firmware version.
+ * This helps determine the correct value for the Stats
+ * timeout. Older versions of the bike send data only every
+ * 2 seconds, while newer bikes send data every 300 ms.
+ * @param {buffer} data - raw characteristic value.
+ * @returns {string} version - bike version number as string
+ * @returns {object} timeout - stats timeout for this bike version
+ */
+export function bikeVersion(data) {
+  let version = "Unknown";
+  let timeout = KEISER_STATS_TIMEOUT_OLD;
+  if (data.indexOf(KEISER_VALUE_MAGIC) === 0) {
+    const major = data.readUInt8(KEISER_VALUE_IDX_VER_MAJOR);
+    const minor = data.readUInt8(KEISER_VALUE_IDX_VER_MINOR);
+    version = major.toString(16) + "." + minor.toString(16);
+    if ((major === 6) && (minor >= parseInt(KEISER_STATS_NEWVER_MINOR, 16))) {
+      timeout = KEISER_STATS_TIMEOUT_NEW;
+    }
+    console.log("Keiser M3 bike version: ", version, " (Stats timeout: ", timeout, " sec.)");
+    return { version, timeout };
+  }
+  throw new Error('unable to parse bike version data');
+}
+
+/**
  * Parse Keiser Bike Data characteristic value.
  * Consider if provided value are realtime or review mode
  * See https://dev.keiser.com/mseries/direct/#data-type
@@ -181,32 +220,3 @@ export function parse(data) {
   throw new Error('unable to parse message');
 }
 
-/**
- * Workaround for an issue in the Keiser Bike where it occasionally
- * incorrectly reports zero cadence (rpm) or zero power (watts)
- * @private
- */
-function createDropoutFilter() {
-  let prev = null;
-
-  /**
-   * Returns stats payload with spurious zero removed.
-   * @param {object} curr - current stats payload
-   * @param {number} curr.power - power (watts)
-   * @param {number} curr.cadence - cadence (rpm)
-   * @returns {object} fixed - fixed stats payload
-   * @returns {object} fixed.power - fixed power (watts)
-   * @returns {object} fixed.cadence - cadence
-   */
-  return function (curr) {
-    let fixed = {...curr};
-    if (prev !== null && curr.power === 0 && curr.cadence > 0 && prev.power > 0) {
-      fixed.power = prev.power;
-    }
-    if (prev !== null && curr.cadence === 0 && curr.power > 0 && prev.cadence > 0) {
-      fixed.cadence = prev.cadence;
-    }
-    prev = curr;
-    return fixed;
-  }
-}

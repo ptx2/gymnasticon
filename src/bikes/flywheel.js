@@ -4,6 +4,7 @@ import {execFile} from 'child_process';
 const execFileAsync = util.promisify(execFile);
 import {scan} from '../util/ble-scan';
 import {macAddress} from '../util/mac-address';
+import {createDropoutFilter} from '../util/dropout-filter';
 
 // GATT service/characteristic UUIDs
 const UART_SERVICE_UUID = '6e400001b5a3f393e0a9e50e24dcca9e';
@@ -52,7 +53,7 @@ export class FlywheelBikeClient extends EventEmitter {
       throw new Error('Already connected');
     }
 
-    this.fixPowerDropout = createPowerDropoutFilter();
+    this.fixPowerDropout = createDropoutFilter();
 
     // scan
     this.peripheral = await scan(this.noble, [UART_SERVICE_UUID], this.filters);
@@ -211,33 +212,5 @@ async function updateConnectionParameters(peripheral, minInterval, maxInterval, 
       '--timeout', `${Math.floor(supervisionTimeout/10)}`,
     ]
     await execFileAsync(cmd, args);
-  }
-}
-
-/**
- * Workaround for an issue in the Flywheel Bike where it occasionally
- * incorrectly reports zero power (watts).
- *
- * @private
- */
-function createPowerDropoutFilter() {
-  let prev = null;
-
-  /**
-   * Returns stats payload with spurious zero removed.
-   * @param {object} curr - current stats payload
-   * @param {number} curr.power - power (watts)
-   * @param {number} curr.cadence - cadence (rpm)
-   * @returns {object} fixed - fixed stats payload
-   * @returns {object} fixed.power - fixed power (watts)
-   * @returns {object} fixed.cadence - cadence
-   */
-  return function (curr) {
-    let fixed = {...curr};
-    if (prev !== null && curr.power === 0 && curr.cadence > 0 && prev.power > 0) {
-      fixed.power = prev.power;
-    }
-    prev = curr;
-    return fixed;
   }
 }

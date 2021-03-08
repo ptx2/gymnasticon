@@ -27,6 +27,7 @@ Any software, bike computer or watch that supports standard Bluetooth LE and ANT
 * Rouvy
 * RGT
 * FulGaz
+* mPaceline
 * Peloton iOS/Android (BLE CSC cadence only)
 * Garmin Fenix (requires ANT+ stick)
 * Garmin Edge
@@ -38,10 +39,11 @@ Raspberry Pi Zero W is recommended for best user experience. Any recent Linux or
 
 * Raspbian Buster on Raspberry Pi Zero W
 * Raspbian Buster on Raspberry Pi 4
+* Raspbian Buster on Raspberry Pi 3B+
 * macOS 10.14+
 * Debian Buster on x86-64
 
-> Note: If using a Bluetooth LE bike (e.g. Flywheel) a Bluetooth LE 4.1+ adapter with multi-role capability is required.
+> Note: If using a Bluetooth LE bike (e.g. Flywheel) a Bluetooth LE 4.1+ adapter with multi-role capability is required. All Raspberry Pi devices listed above have this capability but not every BT 4.1+ adapter is guaranteed to have it. Alternatively, two BT 4.0+ adapters can also work: one for the client (to connect to the bike) and one for the server (to receive connections from Zwift or another app).
 
 ## Quick Start: Install Gymnasticon SD card image
 
@@ -76,6 +78,14 @@ The following example configures Gymnasticon to look for a Schwinn IC4 bike and 
 {
   "bike": "ic4",
   "power-scale": 0.92
+}
+```
+
+The following example configures Gymnasticon to look for a Keiser M series bike:
+
+```
+{
+  "bike": "keiser"
 }
 ```
 
@@ -155,15 +165,15 @@ $ gymnasticon --help
 (_)/(_)
 
 Gymnasticon
-v1.3.0
+v1.4.0
 
 usage: gymnasticon [OPTIONS]
 
 Options:
   --config                <filename> load options from json file        [string]
   --bike                  <type>
-           [string] [choices: "flywheel", "peloton", "ic4", "keiser", "bot", "autodetect"]
-                                                         [default: "autodetect"]
+               [string] [choices: "flywheel", "peloton", "ic4", "keiser", "bot",
+                                           "autodetect"] [default: "autodetect"]
   --bike-connect-timeout  <seconds>                        [number] [default: 0]
   --bike-receive-timeout  <seconds>                        [number] [default: 4]
   --bike-adapter          <name> for bike connection           [default: "hci0"]

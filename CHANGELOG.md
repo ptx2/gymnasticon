@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+- Added support for Keiser M series bikes. [6c0e4571](https://github.com/ptx2/gymnasticon/commit/6c0e45713ba98b9921f1b70550246d5eded3280e)
+
 ## 1.3.0
 
 - Added Peloton active cable support (to use without tablet). [40cd8ce1](https://github.com/ptx2/gymnasticon/commit/40cd8ce1c25da335a286b4f24dfcb0b9c252952d)
