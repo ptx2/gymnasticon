@@ -1,0 +1,13 @@
+[Unit]
+Description=Remount /boot filesystem in read-only if overlayfs is enabled for / filesystem
+After=raspberrypi-net-mods.service
+After=sshswitch.service
+Before=gymnasticon-mods.service
+
+[Service]
+ExecStart=/bin/sh -c "/usr/bin/raspi-config nonint get_overlay_now && mount -o remount,ro /boot; exit 0;"
+Type=oneshot
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

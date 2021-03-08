@@ -1,13 +1,12 @@
 [Unit]
-Description=Place / filesystem into overlayfs and mount /boot filesystem in RO mode
+Description=Place / filesystem into overlayfs
 Before=raspberrypi-net-mods.service
 Before=gymnasticon-mods.service
 
 [Service]
 ExecStart=raspi-config nonint enable_overlayfs
-ExecStart=sed -i "s#vfat    defaults    #vfat    defaults,ro #" /etc/fstab
-ExecStart=sed -i "s#ExecStart=/bin/mv#ExecStart=/bin/cp#" /lib/systemd/system/raspberrypi-net-mods.service
 ExecStart=systemctl disable lockrootfs
+ExecStart=systemctl enable bootfs-ro
 ExecStart=rm /etc/systemd/system/lockrootfs.service
 ExecStart=reboot
 Type=oneshot

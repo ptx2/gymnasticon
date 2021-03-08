@@ -32,6 +32,8 @@ install -v -m 644 files/gymnasticon.service "${ROOTFS_DIR}/etc/systemd/system/gy
 install -v -m 644 files/gymnasticon-mods.service "${ROOTFS_DIR}/etc/systemd/system/gymnasticon-mods.service"
 
 install -v -m 644 files/lockrootfs.service "${ROOTFS_DIR}/etc/systemd/system/lockrootfs.service"
+install -v -m 644 files/bootfs-ro.service "${ROOTFS_DIR}/etc/systemd/system/bootfs-ro.service"
+install -v -m 644 files/overlayfs.sh "${ROOTFS_DIR}/etc/profile.d/overlayfs.sh"
 install -v -m 755 files/overctl "${ROOTFS_DIR}/usr/local/sbin/overctl"
 
 on_chroot <<EOF

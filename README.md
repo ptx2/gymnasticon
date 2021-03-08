@@ -54,7 +54,7 @@ This is the easiest way to get up and running on a Raspberry Pi.
 Prerequisites:
 
 1. A Raspberry Pi Zero W or Raspberry Pi 4
-2. A [compatible](https://www.raspberrypi.org/documentation/installation/sd-cards.md) micro-SD card (8GB+)
+2. A [compatible](https://www.raspberrypi.org/documentation/installation/sd-cards.md) micro-SD card (4 GB+)
 3. Access to a computer with an SD card slot
 4. A program to write SD card images like [Raspberry Pi Imager](https://www.raspberrypi.org/downloads/) or `dd(1)`
 
@@ -63,7 +63,7 @@ Steps:
 1. Download the latest [Gymnasticon SD card image](https://github.com/ptx2/gymnasticon/releases/latest/download/gymnasticon-raspberrypi.img.xz)
 2. Write the image to the SD card using Raspberry Pi Imager or `dd`
 3. Optionally add a config file to the SD card (not necessary for Flywheel or Peloton, see below)
-4. Insert the SD card in the Raspberry Pi, power it up and wait a minute
+4. Insert the SD card in the Raspberry Pi, power it up and wait 2-3 minutes
 5. Start pedaling and Gymnasticon should appear in the Zwift device list
 
 Config file:
@@ -81,17 +81,18 @@ The following example configures Gymnasticon to look for a Schwinn IC4 bike and 
 
 See below for additional [configuration options](#CLI-options).
 
-### Gymnasticon SD card image in read-only mode
+### Gymnasticon SD card read-only mode
 
 During first boot Gymnasticon enables the [Overlay Filesystem](https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html) for the root filesystem ("/") and mounts "/boot" as read-only. This reduces the risk of fatal filesystem corruption as result of e.g. power failures, but also extends the lifetime of the SD card by minimizing wear.
 
 A clean shutdown of Gymnasticon is therefore not necessary. Just keep your Raspberry Pi plugged in and running.
 
-It is still possible to setup [networking and remote access](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) so you can check logs, or participate in development work. But this mode is not recommended for typical users.
+It is still possible to setup [networking and remote access](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) so you can check logs, or participate in development work. But this mode is neither necessary, nor recommended for typical users.
 
-> Note: In contrary to a stock Pi OS image the `wpa_supplicant.conf` file has to remain in the "boot" partition. It is therefore possible to read the Wifi password - if used - in clear-text from this file beyond the initial boot.
+> Note: This modified Pi OS image will behave equivalent to stock Pi OS images with regards to the `wpa_supplicant.conf` and `ssh` files only during first boot. This means that the Wifi and SSH settings become part of the underlay filesystem and persist across subsequent reboots.
+> Placing a `wpa_supplicant.conf` or `ssh` file onto the boot partition after the first boot will result in settings NOT being persisted across reboots. Also note that in this case the `wpa_supplicant.conf` and `ssh` files are removed and not available during another reboot.
 
-You can change the root filesystem between read-only and read-write mode, but also show the current mode using the command `overctl`. 
+You can change the root filesystem between read-only and read-write mode, but also show the current mode using the command `overctl`.
 
 ## Troubleshooting
 
