@@ -70,7 +70,7 @@ Steps:
 
 Config file:
 
-If using another bike than Flywheel or Peloton, create and adapt a gymnasticon.json file within the [boot folder](https://www.raspberrypi.org/documentation/configuration/boot_folder.md) of the SD card.
+If using a bike other than Flywheel or Peloton - create and adapt a `gymnasticon.json` file within the main folder of the SD card. It should end up in the same folder as `bootcode.bin`, `cmdline.txt`, `config.txt`, etc.
 
 The following example configures Gymnasticon to look for a Schwinn IC4 bike and to reduce its power measurement values by 8%:
 
