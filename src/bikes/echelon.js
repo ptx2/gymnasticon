@@ -72,12 +72,12 @@ export class EchelonBikeClient extends EventEmitter {
       power: 0,
     };
 
-    // start streaming stats
-    await this.rx.writeAsync(ENABLE_NOTIFICATIONS_PKT, true);
-
     // subscribe to receive data
     this.tx.on('read', this.onReceive);
     await this.tx.subscribeAsync();
+
+    // start streaming stats
+    await this.rx.writeAsync(ENABLE_NOTIFICATIONS_PKT, false);
 
     this.state = 'connected';
   }
