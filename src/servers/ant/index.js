@@ -40,6 +40,8 @@ export class AntServer {
 
     this.broadcastInterval = new Timer(BROADCAST_INTERVAL);
     this.broadcastInterval.on('timeout', this.onBroadcastInterval.bind(this));
+
+    this._isRunning = false;
   }
 
   /**
@@ -59,6 +61,11 @@ export class AntServer {
       stick.write(m);
     }
     this.broadcastInterval.reset();
+    this._isRunning = true;
+  }
+
+  get isRunning() {
+    return this._isRunning;
   }
 
   /**
