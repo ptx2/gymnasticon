@@ -26,7 +26,7 @@ export async function scan(noble, serviceUuids, filters = {}) {
 
 function getFilterProps(result) {
   return {
-    address: macAddress(result.address),
+    address: result.address && macAddress(result.address),
     name: result.advertisement.localName,
   }
 }
