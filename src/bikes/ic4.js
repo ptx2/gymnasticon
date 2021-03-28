@@ -48,7 +48,7 @@ export class Ic4BikeClient extends EventEmitter {
     }
 
     // scan
-    this.peripheral = await scan(this.noble, [FTMS_SERVICE_UUID], filter);
+    this.peripheral = await scan(this.noble, [FTMS_SERVICE_UUID], this.filter);
 
     // connect
     this.peripheral.on('disconnect', this.onDisconnect);
