@@ -91,10 +91,16 @@ export class App {
     this.statsTimeout.on('timeout', this.onBikeStatsTimeout.bind(this));
     this.connectTimeout.on('timeout', this.onBikeConnectTimeout.bind(this));
     this.simulation.on('pedal', this.onPedalStroke.bind(this));
+
+    this.onSigInt = this.onSigInt.bind(this);
+    this.onExit = this.onExit.bind(this);
   }
 
   async run() {
     try {
+      process.on('SIGINT', this.onSigInt);
+      process.on('exit', this.onExit);
+
       const [state] = await once(noble, 'stateChange');
       if (state !== 'poweredOn')
         throw new Error(`Bluetooth adapter state: ${state}`);
@@ -171,5 +177,23 @@ export class App {
   onAntStickStartup() {
     this.logger.log('ANT+ stick opened');
     this.antServer.start();
+  }
+
+  stopAnt() {
+    this.logger.log('stopping ANT+ server');
+    this.antServer.stop();
+  }
+
+  onSigInt() {
+    const listeners = process.listeners('SIGINT');
+    if (listeners[listeners.length-1] === this.onSigInt) {
+      process.exit(0);
+    }
+  }
+
+  onExit() {
+    if (this.antServer.isRunning) {
+      this.stopAnt();
+    }
   }
 }
