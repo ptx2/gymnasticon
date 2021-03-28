@@ -6,6 +6,8 @@ import {scan} from '../util/ble-scan';
 import {macAddress} from '../util/mac-address';
 import {createDropoutFilter} from '../util/dropout-filter';
 
+export const FLYWHEEL_LOCALNAME = 'Flywheel 1';
+
 // GATT service/characteristic UUIDs
 const UART_SERVICE_UUID = '6e400001b5a3f393e0a9e50e24dcca9e';
 const UART_RX_UUID = '6e400002b5a3f393e0a9e50e24dcca9e';
@@ -32,14 +34,12 @@ export class FlywheelBikeClient extends EventEmitter {
   /**
    * Create a FlywheelBikeClient instance.
    * @param {Noble} noble - a Noble instance.
-   * @param {object} filters - filters to specify bike when more than one is present
-   * @param {string} filters.address - mac address
-   * @param {string} filters.name - device name
+   * @param {function} filter - filter to specify bike when more than one is present
    */
-  constructor(noble, filters) {
+  constructor(noble, filter) {
     super();
     this.noble = noble;
-    this.filters = filters;
+    this.filter = filter;
     this.state = 'disconnected';
     this.onReceive = this.onReceive.bind(this);
     this.onDisconnect = this.onDisconnect.bind(this);
@@ -56,7 +56,7 @@ export class FlywheelBikeClient extends EventEmitter {
     this.fixPowerDropout = createDropoutFilter();
 
     // scan
-    this.peripheral = await scan(this.noble, [UART_SERVICE_UUID], this.filters);
+    this.peripheral = await scan(this.noble, [UART_SERVICE_UUID], this.filter);
 
     // connect
     this.peripheral.on('disconnect', this.onDisconnect);
