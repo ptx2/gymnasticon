@@ -21,8 +21,8 @@ const PACKET_DELIMITER = Buffer.from('f6', 'hex');
 const POLL_RATE = 100;
 const STATS_TIMEOUT = 1.0;
 
-const debuglog = util.debuglog('gymnasticon:bikes:peloton');
-const tracelog = util.debuglog('gymnasticon:bikes:peloton:trace');
+const debuglog = require('debug')('gym:bikes:peloton');
+const tracelog = require('debug')('gym:bikes:peloton:trace');
 
 export class PelotonBikeClient extends EventEmitter {
   /**

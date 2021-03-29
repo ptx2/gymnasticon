@@ -1,4 +1,3 @@
-import util from 'util';
 import {EventEmitter} from 'events';
 import {Timer} from '../util/timer';
 import {scan, createNameFilter} from '../util/ble-scan';
@@ -17,7 +16,7 @@ const KEISER_STATS_TIMEOUT_OLD = 7.0; // Old Bike: If no stats received within 7
 const KEISER_STATS_TIMEOUT_NEW = 1.0; // New Bike: If no stats received within 1 sec, reset power and cadence to 0
 const KEISER_BIKE_TIMEOUT = 60.0; // Consider bike disconnected if no stats have been received for 60 sec / 1 minutes
 
-const debuglog = util.debuglog('gymnasticon:bikes:keiser');
+const debuglog = require('debug')('gym:bikes:keiser');
 
 /**
  * Handles communication with Keiser bikes
