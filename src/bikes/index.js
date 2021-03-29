@@ -3,6 +3,8 @@ import {PelotonBikeClient} from './peloton';
 import {Ic4BikeClient} from './ic4';
 import {KeiserBikeClient} from './keiser';
 import {EchelonBikeClient} from './echelon';
+import {EchelonBikeClient2} from './echelon2';
+import {EchelonBikeClient3} from './echelon3';
 import {BotBikeClient} from './bot';
 import {macAddress} from '../util/mac-address';
 import fs from 'fs';
@@ -13,6 +15,8 @@ const factories = {
   'ic4': createIc4BikeClient,
   'keiser': createKeiserBikeClient,
   'echelon': createEchelonBikeClient,
+  'echelon2': createEchelonBikeClient2,
+  'echelon3': createEchelonBikeClient3,
   'bot': createBotBikeClient,
   'autodetect': autodetectBikeClient,
 };
@@ -57,6 +61,14 @@ function createKeiserBikeClient(options, noble) {
 
 function createEchelonBikeClient(options, noble) {
   return new EchelonBikeClient(noble);
+}
+
+function createEchelonBikeClient2(options, noble) {
+  return new EchelonBikeClient2(noble);
+}
+
+function createEchelonBikeClient3(options, noble) {
+  return new EchelonBikeClient3(noble);
 }
 
 function createBotBikeClient(options, noble) {
