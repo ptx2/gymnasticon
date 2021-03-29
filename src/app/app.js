@@ -1,4 +1,3 @@
-import util from 'util';
 import noble from '@abandonware/noble';
 import bleno from '@abandonware/bleno';
 
@@ -12,7 +11,7 @@ import {Timer} from '../util/timer';
 import {Logger} from '../util/logger';
 import {createAntStick} from '../util/ant-stick';
 
-const debuglog = util.debuglog('gymnasticon:app:app');
+const debuglog = require('debug')('gym:app:app');
 
 export {getBikeTypes};
 
