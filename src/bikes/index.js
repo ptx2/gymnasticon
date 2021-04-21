@@ -1,5 +1,8 @@
 import {FlywheelBikeClient, FLYWHEEL_LOCALNAME} from './flywheel';
 import {PelotonBikeClient} from './peloton';
+import {EchelonBikeClient} from './echelon';
+import {EchelonBikeClient2} from './echelon2';
+import {EchelonBikeClient3} from './echelon3';
 import {Ic4BikeClient, IC4_LOCALNAME} from './ic4';
 import {KeiserBikeClient, KEISER_LOCALNAME} from './keiser';
 import {BotBikeClient} from './bot';
@@ -21,6 +24,9 @@ const factories = {
   'peloton': createPelotonBikeClient,
   'ic4': createIc4BikeClient,
   'keiser': createKeiserBikeClient,
+  'echelon': createEchelonBikeClient,
+  'echelon2': createEchelonBikeClient2,
+  'echelon3': createEchelonBikeClient3,
   'bot': createBotBikeClient,
   'autodetect': autodetectBikeClient,
 };
@@ -64,6 +70,18 @@ function createIc4BikeClient(options, noble) {
 
 function createKeiserBikeClient(options, noble) {
   return new KeiserBikeClient(noble);
+}
+
+function createEchelonBikeClient(options, noble) {
+  return new EchelonBikeClient(noble);
+}
+
+function createEchelonBikeClient2(options, noble) {
+  return new EchelonBikeClient2(noble);
+}
+
+function createEchelonBikeClient3(options, noble) {
+  return new EchelonBikeClient3(noble);
 }
 
 function createBotBikeClient(options, noble) {
