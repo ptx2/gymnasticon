@@ -1,10 +1,20 @@
-import {FlywheelBikeClient} from './flywheel';
+import {FlywheelBikeClient, FLYWHEEL_LOCALNAME} from './flywheel';
 import {PelotonBikeClient} from './peloton';
-import {Ic4BikeClient} from './ic4';
-import {KeiserBikeClient} from './keiser';
+import {Ic4BikeClient, IC4_LOCALNAME} from './ic4';
+import {KeiserBikeClient, KEISER_LOCALNAME} from './keiser';
 import {BotBikeClient} from './bot';
 import {macAddress} from '../util/mac-address';
+import {scan, createFilter, createNameFilter} from '../util/ble-scan';
 import fs from 'fs';
+
+// Autodetection on advertisement.localName seems to be enough and
+// keeps it simple. Any peripheral property can be tested though,
+// e.g. serviceUuids, manufacturerData, rssi, etc.
+const autodetectFilters = {
+  'flywheel': createNameFilter(FLYWHEEL_LOCALNAME),
+  'ic4': createNameFilter(IC4_LOCALNAME),
+  'keiser': createNameFilter(KEISER_LOCALNAME),
+};
 
 const factories = {
   'flywheel': createFlywheelBikeClient,
@@ -15,29 +25,32 @@ const factories = {
   'autodetect': autodetectBikeClient,
 };
 
+/**
+ * Supported bike types.
+ * @returns {string[]} - supported bike types
+ */
 export function getBikeTypes() {
   return Object.keys(factories);
 }
 
-export function createBikeClient(options, noble) {
+/**
+ * Create a BikeClient instance based on the config options.
+ * @param {object} options - yargs CLI/config options
+ * @param {Noble} noble - a Noble instance
+ * @returns {BikeClient} - a BikeClient instance
+ */
+export async function createBikeClient(options, noble) {
   const {bike} = options;
   const factory = factories[bike];
   if (!factory) {
     throw new Error(`unrecognized bike type ${bike}`);
   }
-  return factory(options, noble);
+  return await factory(options, noble);
 }
 
 function createFlywheelBikeClient(options, noble) {
-  const filters = {};
-  if (options.flywheelAddress) {
-    filters.address = (v) => v == macAddress(options.flywheelAddress);
-  }
-  if (options.flywheelName) {
-    filters.name = (v) => new RegExp(options.flywheelName).test(v);
-  }
-  process.env['NOBLE_HCI_DEVICE_ID'] = options.flywheelAdapter;
-  return new FlywheelBikeClient(noble, filters);
+  const filter = createFilter({name: options.flywheelName, address: options.flywheelAddress});
+  return new FlywheelBikeClient(noble, filter);
 }
 
 function createPelotonBikeClient(options, noble) {
@@ -63,9 +76,21 @@ function createBotBikeClient(options, noble) {
   return new BotBikeClient(...args);
 }
 
-function autodetectBikeClient(options, noble) {
+/**
+ * Create a BikeClient instance for the first matching autodetected bike.
+ * @param {object} options - yargs CLI/config options
+ * @param {Noble} noble - a Noble instance.
+ * @returns {BikeClient} - a BikeClient instance.
+ */
+async function autodetectBikeClient(options, noble) {
   if (fs.existsSync(options.pelotonPath)) {
     return createPelotonBikeClient(options, noble);
   }
-  return createFlywheelBikeClient(options, noble);
+  const types = Object.keys(autodetectFilters);
+  const funcs = Object.values(autodetectFilters);
+  const filter = peripheral => funcs.some(f => f(peripheral));
+  const peripheral = await scan(noble, null, filter);
+  const bike = types.find(f => autodetectFilters[f](peripheral));
+  const factory = factories[bike];
+  return await factory(options, noble, peripheral);
 }

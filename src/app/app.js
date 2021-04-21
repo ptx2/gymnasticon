@@ -24,7 +24,7 @@ export const defaults = {
 
   // flywheel bike options
   flywheelAddress: undefined, // mac address of bike
-  flywheelName: 'Flywheel', // name of bike
+  flywheelName: 'Flywheel 1', // name of bike
 
   // peloton bike options
   pelotonPath: '/dev/ttyUSB0', // default path for usb to serial device
@@ -71,8 +71,8 @@ export class App {
       process.env['NOBLE_MULTI_ROLE'] = '1'
     }
 
+    this.opts = opts;
     this.logger = new Logger();
-    this.bike = createBikeClient(opts, noble);
     this.simulation = new Simulation();
     this.server = new GymnasticonServer(bleno, opts.serverName);
 
@@ -89,8 +89,6 @@ export class App {
     this.pingInterval.on('timeout', this.onPingInterval.bind(this));
     this.statsTimeout.on('timeout', this.onBikeStatsTimeout.bind(this));
     this.connectTimeout.on('timeout', this.onBikeConnectTimeout.bind(this));
-    this.bike.on('disconnect', this.onBikeDisconnect.bind(this));
-    this.bike.on('stats', this.onBikeStats.bind(this));
     this.simulation.on('pedal', this.onPedalStroke.bind(this));
 
     this.onSigInt = this.onSigInt.bind(this);
@@ -107,6 +105,9 @@ export class App {
         throw new Error(`Bluetooth adapter state: ${state}`);
 
       this.logger.log('connecting to bike...');
+      this.bike = await createBikeClient(this.opts, noble);
+      this.bike.on('disconnect', this.onBikeDisconnect.bind(this));
+      this.bike.on('stats', this.onBikeStats.bind(this));
       this.connectTimeout.reset();
       await this.bike.connect();
       this.connectTimeout.cancel();

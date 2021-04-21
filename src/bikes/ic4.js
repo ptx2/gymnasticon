@@ -5,6 +5,8 @@ const execFileAsync = util.promisify(execFile);
 import {scan} from '../util/ble-scan';
 import {macAddress} from '../util/mac-address';
 
+export const IC4_LOCALNAME = 'IC Bike';
+
 // GATT service/characteristic UUIDs
 const FTMS_SERVICE_UUID = '1826';
 const INDOOR_BIKE_DATA_UUID = '2ad2';
@@ -26,14 +28,12 @@ export class Ic4BikeClient extends EventEmitter {
   /**
    * Create a Ic4BikeClient instance.
    * @param {Noble} noble - a Noble instance.
-   * @param {object} filters - filters to specify bike when more than one is present
-   * @param {string} filters.address - mac address
-   * @param {string} filters.name - device name
+   * @param {function} filter - filter to specify bike when more than one is present
    */
-  constructor(noble, filters) {
+  constructor(noble, filter) {
     super();
     this.noble = noble;
-    this.filters = filters;
+    this.filter = filter;
     this.state = 'disconnected';
     this.onReceive = this.onReceive.bind(this);
     this.onDisconnect = this.onDisconnect.bind(this);
@@ -48,7 +48,7 @@ export class Ic4BikeClient extends EventEmitter {
     }
 
     // scan
-    this.peripheral = await scan(this.noble, [FTMS_SERVICE_UUID], this.filters);
+    this.peripheral = await scan(this.noble, [FTMS_SERVICE_UUID], this.filter);
 
     // connect
     this.peripheral.on('disconnect', this.onDisconnect);
