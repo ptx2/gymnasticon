@@ -1,11 +1,10 @@
-import util from 'util';
 import {EventEmitter} from 'events';
 import {Timer} from '../util/timer';
-import {scan} from '../util/ble-scan';
+import {scan, createNameFilter} from '../util/ble-scan';
 import {macAddress} from '../util/mac-address';
 import {createDropoutFilter} from '../util/dropout-filter';
 
-const KEISER_LOCALNAME = "M3";
+export const KEISER_LOCALNAME = "M3";
 const KEISER_VALUE_MAGIC = Buffer.from([0x02, 0x01]); // identifies Keiser data message
 const KEISER_VALUE_IDX_POWER = 10; // 16-bit power (watts) data offset within packet
 const KEISER_VALUE_IDX_CADENCE = 6; // 16-bit cadence (1/10 rpm) data offset within packet
@@ -17,7 +16,7 @@ const KEISER_STATS_TIMEOUT_OLD = 7.0; // Old Bike: If no stats received within 7
 const KEISER_STATS_TIMEOUT_NEW = 1.0; // New Bike: If no stats received within 1 sec, reset power and cadence to 0
 const KEISER_BIKE_TIMEOUT = 60.0; // Consider bike disconnected if no stats have been received for 60 sec / 1 minutes
 
-const debuglog = util.debuglog('gymnasticon:bikes:keiser');
+const debuglog = require('debug')('gym:bikes:keiser');
 
 /**
  * Handles communication with Keiser bikes
@@ -28,14 +27,10 @@ export class KeiserBikeClient extends EventEmitter {
   /**
    * Create a KeiserBikeClient instance.
    * @param {Noble} noble - a Noble instance.
-   * @param {object} filters - filters to specify bike when more than one is present
-   * @param {string} filters.address - mac address
-   * @param {string} filters.name - device name
    */
-  constructor(noble, filters) {
+  constructor(noble) {
     super();
     this.noble = noble;
-    this.filters = filters;
     this.state = 'disconnected';
     this.onReceive = this.onReceive.bind(this);
   }
@@ -50,9 +45,8 @@ export class KeiserBikeClient extends EventEmitter {
     }
 
     // Scan for bike
-    this.filters = {};
-    this.filters.name = (v) => v == KEISER_LOCALNAME;
-    this.peripheral = await scan(this.noble, null, this.filters);
+    const filter = createNameFilter(KEISER_LOCALNAME);
+    this.peripheral = await scan(this.noble, null, filter);
 
     this.state = 'connected';
 

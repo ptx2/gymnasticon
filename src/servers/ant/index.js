@@ -1,8 +1,7 @@
 import Ant from 'gd-ant-plus';
-import util from 'util';
 import {Timer} from '../../util/timer';
 
-const debuglog = util.debuglog('gymnasticon:servers:ant');
+const debuglog = require('debug')('gym:servers:ant');
 
 const DEVICE_TYPE = 0x0b; // power meter
 const DEVICE_NUMBER = 1;
@@ -40,6 +39,8 @@ export class AntServer {
 
     this.broadcastInterval = new Timer(BROADCAST_INTERVAL);
     this.broadcastInterval.on('timeout', this.onBroadcastInterval.bind(this));
+
+    this._isRunning = false;
   }
 
   /**
@@ -59,6 +60,11 @@ export class AntServer {
       stick.write(m);
     }
     this.broadcastInterval.reset();
+    this._isRunning = true;
+  }
+
+  get isRunning() {
+    return this._isRunning;
   }
 
   /**
