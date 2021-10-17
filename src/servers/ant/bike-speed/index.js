@@ -7,7 +7,8 @@ const WHEEL_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
 
 const DEVICE_TYPE = 0x7b; // Bike Speed Sensors
 const DEVICE_NUMBER = 2;
-const PERIOD = 8118; // 8118/32768 ~4hz
+//const PERIOD = 8118; // 8118/32768 ~4hz
+const PERIOD = 8182; // 8182/32768 ~4hz
 const RF_CHANNEL = 57; // 2457 MHz
 const BROADCAST_INTERVAL = PERIOD / 32768; // seconds
 

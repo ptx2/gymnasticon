@@ -137,7 +137,7 @@ export class App {
     this.cadence = this.crankSimulation.cadence;
     let {power, crank, wheel, cadence} = this;
     this.logger.log(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} power=${power}W]`);
-    this.antBikePower.updateMeasurement({ power, cadence });
+    //this.antBikePower.updateMeasurement({ power, cadence });
     //this.server.updateMeasurement({ power, crank, wheel });
   }
 
@@ -197,13 +197,13 @@ export class App {
 
   onAntStickStartup() {
     this.logger.log('ANT+ stick opened');
-    this.antBikePower.start();
+    //this.antBikePower.start();
     this.antBikeSpeed.start();
   }
 
   stopAnt() {
     this.logger.log('stopping ANT+ server');
-    this.antBikePower.stop();
+    //this.antBikePower.stop();
     this.antBikeSpeed.stop();
   }
 
