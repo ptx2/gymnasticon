@@ -54,7 +54,7 @@ export class CscMeasurementCharacteristic extends Characteristic {
       flags |= FLAG_HASCRANKDATA;
 
       value.writeUInt8(flags, 0);
-      debuglog(`BLE broadcast CSC wheel revolutions=${wheelRevolutions32bit} wheel timestamp=${wheelTimestamp16bit} message=${value.toString('hex')}`);
+      debuglog(`BLE broadcast CSC wheel revolutions=${wheelRevolutions32bit} wheel timestamp=${wheelTimestamp16bit} crank revolutions=${crankRevolutions16bit} crank timestamp=${crankTimestamp16bit} message=${value.toString('hex')}`);
       if (this.updateValueCallback) {
         this.updateValueCallback(value)
       }
