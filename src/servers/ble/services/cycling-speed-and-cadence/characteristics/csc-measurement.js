@@ -40,8 +40,7 @@ export class CscMeasurementCharacteristic extends Characteristic {
       const value = Buffer.alloc(11);
 
       const wheelRevolutions32bit = wheel.revolutions & 0xffffffff;
-      //const wheelTimestamp16bit = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
-      const wheelTimestamp16bit = Math.round(wheel.sinceLast * WHEEL_TIMESTAMP_SCALE) & 0xffff;
+      const wheelTimestamp16bit = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
       value.writeUInt32LE(wheelRevolutions32bit, 1);
       value.writeUInt16LE(wheelTimestamp16bit, 5);
 
