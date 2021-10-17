@@ -14,7 +14,7 @@ export class CyclingPowerFeatureCharacteristic extends Characteristic {
           value: 'Cycling Power Feature'
         })
       ],
-      value: Buffer.from([12,0,0,0]) // crank revolution data
+      value: Buffer.from([8,0,0,0]) // crank revolution data
     })
   }
 }
