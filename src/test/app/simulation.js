@@ -1,6 +1,6 @@
 import {test} from 'tape';
 import sinon from 'sinon';
-import {crankSimulation} from '../../app/crankSimulation';
+import {CrankSimulation} from '../../app/crankSimulation';
 
 test('constant cadence', t => {
   const timeline = [
@@ -123,7 +123,7 @@ function testTimeline(timeline, t) {
   const duration = Math.max(...timestamps);
 
   const clock = sinon.useFakeTimers();
-  const sim = new crankSimulation();
+  const sim = new CrankSimulation();
 
   // change sim.cadence at the appropriate times
   for (let {timestamp, cadence} of cadenceChanges) {
