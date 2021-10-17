@@ -49,6 +49,11 @@ export const options = {
     type: 'number',
     default: defaults.botCadence,
   },
+  'bot-speed': {
+    describe: '<km/h> initial bot speed',
+    type: 'number',
+    default: defaults.botSpeed,
+  },
   'bot-host': {
     describe: '<host> for power/cadence control over udp',
     type: 'string',

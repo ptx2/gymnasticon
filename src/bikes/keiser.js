@@ -208,9 +208,9 @@ export function parse(data) {
       // Realtime data received
       const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
       const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
-      return {type: 'stats', payload: {power, cadence}};
+      const speed = 0; // Speed not supported by Keiser
+      return {type: 'stats', payload: {power, cadence, speed}};
     }
   }
   throw new Error('unable to parse message');
 }
-

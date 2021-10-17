@@ -4,9 +4,11 @@ import bleno from '@abandonware/bleno';
 import {once} from 'events';
 
 import {GymnasticonServer} from '../servers/ble';
-import {AntServer} from '../servers/ant';
+import {AntBikePower} from '../servers/ant/bike-power';
+import {AntBikeSpeed} from '../servers/ant/bike-speed';
 import {createBikeClient, getBikeTypes} from '../bikes';
-import {Simulation} from './simulation';
+import {CrankSimulation} from './crankSimulation';
+import {WheelSimulation} from './wheelSimulation';
 import {Timer} from '../util/timer';
 import {Logger} from '../util/logger';
 import {createAntStick} from '../util/ant-stick';
@@ -32,6 +34,7 @@ export const defaults = {
   // test bike options
   botPower: 0, // power
   botCadence: 0, // cadence
+  botSpeed: 0, // speed
   botHost: '0.0.0.0', // listen for udp message to update cadence/power
   botPort: 3000,
 
@@ -63,7 +66,9 @@ export class App {
     const opts = {...defaults, ...options};
 
     this.power = 0;
+    this.cadence = 0;
     this.crank = {revolutions: 0, timestamp: -Infinity};
+    this.wheel = {revolutions: 0, timestamp: -Infinity};
 
     process.env['NOBLE_HCI_DEVICE_ID'] = opts.bikeAdapter;
     process.env['BLENO_HCI_DEVICE_ID'] = opts.serverAdapter;
@@ -73,11 +78,13 @@ export class App {
 
     this.opts = opts;
     this.logger = new Logger();
-    this.simulation = new Simulation();
+    this.crankSimulation = new CrankSimulation();
+    this.wheelSimulation = new WheelSimulation();
     this.server = new GymnasticonServer(bleno, opts.serverName);
 
     this.antStick = createAntStick(opts);
-    this.antServer = new AntServer(this.antStick, {deviceId: opts.antDeviceId});
+    this.antBikePower = new AntBikePower(this.antStick, {deviceId: opts.antDeviceId});
+    this.antBikeSpeed = new AntBikeSpeed(this.antStick, {deviceId: opts.antDeviceId});
     this.antStick.on('startup', this.onAntStickStartup.bind(this));
 
     this.pingInterval = new Timer(opts.serverPingInterval);
@@ -89,7 +96,8 @@ export class App {
     this.pingInterval.on('timeout', this.onPingInterval.bind(this));
     this.statsTimeout.on('timeout', this.onBikeStatsTimeout.bind(this));
     this.connectTimeout.on('timeout', this.onBikeConnectTimeout.bind(this));
-    this.simulation.on('pedal', this.onPedalStroke.bind(this));
+    this.crankSimulation.on('pedal', this.onPedalStroke.bind(this));
+    this.wheelSimulation.on('wheel', this.onWheelRotation.bind(this));
 
     this.onSigInt = this.onSigInt.bind(this);
     this.onExit = this.onExit.bind(this);
@@ -126,26 +134,40 @@ export class App {
     this.pingInterval.reset();
     this.crank.timestamp = timestamp;
     this.crank.revolutions++;
-    let {power, crank} = this;
+    this.cadence = this.crankSimulation.cadence;
+    let {power, crank, wheel, cadence} = this;
     this.logger.log(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} power=${power}W]`);
-    this.server.updateMeasurement({ power, crank });
+    this.antBikePower.updateMeasurement({ power, cadence });
+    //this.server.updateMeasurement({ power, crank, wheel });
+  }
+
+  onWheelRotation(timestamp) {
+    this.pingInterval.reset();
+    this.wheel.timestamp = timestamp;
+    this.wheel.revolutions++;
+    let {power, crank, wheel, cadence} = this;
+    this.logger.log(`wheel rotation [timestamp=${timestamp} revolutions=${wheel.revolutions} power=${power}W]`);
+    this.antBikeSpeed.updateMeasurement({ wheel });
+    this.server.updateMeasurement({ power, crank, wheel });
   }
 
   onPingInterval() {
     debuglog(`pinging app since no stats or pedal strokes for ${this.pingInterval.interval}s`);
-    let {power, crank} = this;
-    this.server.updateMeasurement({ power, crank });
+    let {power, crank, wheel} = this;
+    this.server.updateMeasurement({ power, crank, wheel });
   }
 
-  onBikeStats({ power, cadence }) {
+  onBikeStats({ power, cadence, speed }) {
     power = power > 0 ? Math.max(0, Math.round(power * this.powerScale + this.powerOffset)) : 0;
-    this.logger.log(`received stats from bike [power=${power}W cadence=${cadence}rpm]`);
+    this.logger.log(`received stats from bike [power=${power}W cadence=${cadence}rpm speed=${speed}km/h]`);
     this.statsTimeout.reset();
     this.power = power;
-    this.simulation.cadence = cadence;
-    let {crank} = this;
-    this.server.updateMeasurement({ power, crank });
-    this.antServer.updateMeasurement({ power, cadence });
+    this.crankSimulation.cadence = cadence;
+    this.wheelSimulation.speed = speed;
+    let {crank, wheel} = this;
+    this.server.updateMeasurement({ power, crank, wheel });
+    //this.antBikePower.updateMeasurement({ power, cadence });
+    //this.antBikeSpeed.updateMeasurement({ wheel });
   }
 
   onBikeStatsTimeout() {
@@ -175,12 +197,14 @@ export class App {
 
   onAntStickStartup() {
     this.logger.log('ANT+ stick opened');
-    this.antServer.start();
+    this.antBikePower.start();
+    this.antBikeSpeed.start();
   }
 
   stopAnt() {
     this.logger.log('stopping ANT+ server');
-    this.antServer.stop();
+    this.antBikePower.stop();
+    this.antBikeSpeed.stop();
   }
 
   onSigInt() {
@@ -191,7 +215,7 @@ export class App {
   }
 
   onExit() {
-    if (this.antServer.isRunning) {
+    if (this.antBikePower.isRunning||this.antBikeSpeed.isRunning) {
       this.stopAnt();
     }
   }

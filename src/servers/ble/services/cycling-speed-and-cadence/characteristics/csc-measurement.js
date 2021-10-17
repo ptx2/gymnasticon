@@ -1,7 +1,11 @@
 import {Characteristic, Descriptor} from '@abandonware/bleno';
 
+const debuglog = require('debug')('gym:servers:ble');
+
 const FLAG_HASCRANKDATA = (1<<1);
+const FLAG_HASSPEEDDATA = (1<<0);
 const CRANK_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
+const WHEEL_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
 
 /**
  * Bluetooth LE GATT CSC Measurement Characteristic implementation.
@@ -26,22 +30,34 @@ export class CscMeasurementCharacteristic extends Characteristic {
    * @param {object} measurement.crank - last crank event.
    * @param {number} measurement.crank.revolutions - revolution count at last crank event.
    * @param {number} measurement.crank.timestamp - timestamp at last crank event.
+   * @param {object} measurement.wheel - last wheel event.
+   * @param {number} measurement.wheel.revolutions - revolution count at last wheel event.
+   * @param {number} measurement.wheel.timestamp - timestamp at last wheel event.
    */
-  updateMeasurement({ crank }) {
-    let flags = 0;
+  updateMeasurement({ crank, wheel }) {
+    if (crank && wheel) {
+      let flags = 0;
+      const value = Buffer.alloc(11);
 
-    const value = Buffer.alloc(5);
+      const wheelRevolutions32bit = wheel.revolutions & 0xffffffff;
+      //const wheelTimestamp16bit = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
+      const wheelTimestamp16bit = Math.round(wheel.sinceLast * WHEEL_TIMESTAMP_SCALE) & 0xffff;
+      value.writeUInt32LE(wheelRevolutions32bit, 1);
+      value.writeUInt16LE(wheelTimestamp16bit, 5);
 
-    const revolutions16bit = crank.revolutions & 0xffff;
-    const timestamp16bit = Math.round(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
-    value.writeUInt16LE(revolutions16bit, 1);
-    value.writeUInt16LE(timestamp16bit, 3);
-    flags |= FLAG_HASCRANKDATA;
+      const crankRevolutions16bit = crank.revolutions & 0xffff;
+      const crankTimestamp16bit = Math.round(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
+      value.writeUInt16LE(crankRevolutions16bit, 7);
+      value.writeUInt16LE(crankTimestamp16bit, 9);
 
-    value.writeUInt8(flags, 0);
+      flags |= FLAG_HASSPEEDDATA;
+      flags |= FLAG_HASCRANKDATA;
 
-    if (this.updateValueCallback) {
-      this.updateValueCallback(value)
+      value.writeUInt8(flags, 0);
+      debuglog(`BLE broadcast CSC wheel revolutions=${wheelRevolutions32bit} wheel timestamp=${wheelTimestamp16bit} message=${value.toString('hex')}`);
+      if (this.updateValueCallback) {
+        this.updateValueCallback(value)
+      }
     }
   }
 }

@@ -1,24 +1,26 @@
 import Ant from 'gd-ant-plus';
-import {Timer} from '../../util/timer';
+import {Timer} from '../../../util/timer';
 
 const debuglog = require('debug')('gym:servers:ant');
 
-const DEVICE_TYPE = 0x0b; // power meter
-const DEVICE_NUMBER = 1;
-const PERIOD = 8182; // 8182/32768 ~4hz
+const WHEEL_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
+
+const DEVICE_TYPE = 0x7b; // Bike Speed Sensors
+const DEVICE_NUMBER = 2;
+const PERIOD = 8118; // 8118/32768 ~4hz
 const RF_CHANNEL = 57; // 2457 MHz
 const BROADCAST_INTERVAL = PERIOD / 32768; // seconds
 
 const defaults = {
   deviceId: 11234,
-  channel: 1,
+  channel: 2,
 }
 
 /**
  * Handles communication with apps (e.g. Zwift) using the ANT+ Bicycle Power
  * profile (instantaneous cadence and power).
  */
-export class AntServer {
+export class AntBikeSpeed {
   /**
    * Create an AntServer instance.
    * @param {Ant.USBDevice} antStick - ANT+ device instance
@@ -29,13 +31,11 @@ export class AntServer {
   constructor(antStick, options = {}) {
     const opts = {...defaults, ...options};
     this.stick = antStick;
-    this.deviceId = opts.deviceId;
-    this.eventCount = 0;
-    this.accumulatedPower = 0;
+    this.deviceId = opts.deviceId + 1;
     this.channel = opts.channel;
 
-    this.power = 0;
-    this.cadence = 0;
+    this.wheelRevolutions = 0;
+    this.wheelTimestamp = 0;
 
     this.broadcastInterval = new Timer(BROADCAST_INTERVAL);
     this.broadcastInterval.on('timeout', this.onBroadcastInterval.bind(this));
@@ -48,8 +48,9 @@ export class AntServer {
    */
   start() {
     const {stick, channel, deviceId} = this;
+    console.log("max channels: ", stick.maxChannels);
     const messages = [
-      Ant.Messages.assignChannel(channel, 'transmit'),
+      Ant.Messages.assignChannel(channel, 'transmit_only'),
       Ant.Messages.setDevice(channel, deviceId, DEVICE_TYPE, DEVICE_NUMBER),
       Ant.Messages.setFrequency(channel, RF_CHANNEL),
       Ant.Messages.setPeriod(channel, PERIOD),
@@ -85,34 +86,31 @@ export class AntServer {
   /**
    * Update instantaneous power and cadence.
    * @param {object} measurement
-   * @param {number} measurement.power - power in watts
-   * @param {number} measurement.cadence - cadence in rpm
+   * @param {object} measurement.wheel - last wheel event.
+   * @param {number} measurement.wheel.revolutions - revolution count at last wheel event.
+   * @param {number} measurement.wheel.timestamp - timestamp at last wheel event.
    */
-  updateMeasurement({ power, cadence }) {
-    this.power = power;
-    this.cadence = cadence;
+  updateMeasurement({ wheel }) {
+    this.wheelRevolutions = wheel.revolutions;
+    this.wheelTimestamp = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
   }
 
   /**
    * Broadcast instantaneous power and cadence.
    */
   onBroadcastInterval() {
-    const {stick, channel, power, cadence} = this;
-    this.accumulatedPower += power;
-    this.accumulatedPower &= 0xffff;
+    const {stick, channel} = this;
     const data = [
       channel,
-      0x10, // power only
-      this.eventCount,
-      0xff, // pedal power not used
-      cadence,
-      ...Ant.Messages.intToLEHexArray(this.accumulatedPower, 2),
-      ...Ant.Messages.intToLEHexArray(power, 2),
+      0x0,
+      0x0,
+      0x0,
+      0x0,
+      ...Ant.Messages.intToLEHexArray(this.wheelTimestamp, 2),     // Event Time
+      ...Ant.Messages.intToLEHexArray(this.wheelRevolutions, 2),   // Revolution Count
     ];
     const message = Ant.Messages.broadcastData(data);
-    debuglog(`ANT+ broadcast power=${power}W cadence=${cadence}rpm accumulatedPower=${this.accumulatedPower}W eventCount=${this.eventCount} message=${message.toString('hex')}`);
+    debuglog(`ANT+ broadcast speed revolutions=${this.wheelRevolutions} timestamp=${this.wheelTimestamp} message=${message.toString('hex')}`);
     stick.write(message);
-    this.eventCount++;
-    this.eventCount &= 0xff;
   }
 }

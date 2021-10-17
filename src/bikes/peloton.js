@@ -41,6 +41,7 @@ export class PelotonBikeClient extends EventEmitter {
     // initial stats
     this.power = 0;
     this.cadence = 0;
+    this.speed = 0;
 
     // reset stats to 0 when the user leaves the ride screen or turns the bike off
     this.statsTimeout = new Timer(STATS_TIMEOUT, {repeats: false});
@@ -83,8 +84,8 @@ export class PelotonBikeClient extends EventEmitter {
    * @private
    */
   onStatsUpdate() {
-    const {power, cadence} = this;
-    this.emit('stats', {power, cadence});
+    const {power, cadence, speed} = this;
+    this.emit('stats', {power, cadence, speed});
   }
 
   onSerialMessage(data) {
@@ -117,6 +118,7 @@ export class PelotonBikeClient extends EventEmitter {
   onStatsTimeout() {
     this.power = 0;
     this.cadence = 0;
+    this.speed = 0;
     tracelog("StatsTimeout exceeded");
     this.onStatsUpdate();
   }

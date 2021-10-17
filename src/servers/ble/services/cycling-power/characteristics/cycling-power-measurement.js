@@ -1,7 +1,10 @@
 import {Characteristic, Descriptor} from '@abandonware/bleno';
 
+const debuglog = require('debug')('gym:servers:ble');
+
 const FLAG_HASCRANKDATA = (1<<5);
 const CRANK_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
+
 
 /**
  * Bluetooth LE GATT Cycling Power Measurement Characteristic implementation.
@@ -34,7 +37,6 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
     const value = Buffer.alloc(8);
     value.writeInt16LE(power, 2);
 
-    // include crank data if provided
     if (crank) {
       const revolutions16bit = crank.revolutions & 0xffff;
       const timestamp16bit = Math.round(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
@@ -44,7 +46,7 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
     }
 
     value.writeUInt16LE(flags, 0);
-
+    debuglog(`BLE broadcast PWR power=${power} message=${value.toString('hex')}`);
     if (this.updateValueCallback) {
       this.updateValueCallback(value)
     }

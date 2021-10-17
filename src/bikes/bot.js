@@ -12,10 +12,11 @@ export class BotBikeClient extends EventEmitter {
    * Create a BotBikeClient instance.
    * @param {number} power - initial power (watts)
    * @param {number} cadence - initial cadence (rpm)
+   * @param {number} speed - initial speed (km/h)
    * @param {string} host - host to listen on for udp control interface
    * @param {number} port - port to listen on for udp control interface
    */
-  constructor(power, cadence, host, port) {
+  constructor(power, cadence, speed, host, port) {
     super();
 
     this.onStatsUpdate = this.onStatsUpdate.bind(this);
@@ -24,6 +25,7 @@ export class BotBikeClient extends EventEmitter {
 
     this.power = power;
     this.cadence = cadence;
+    this.speed = speed;
     this._host = host;
     this._port = port;
 
@@ -51,8 +53,8 @@ export class BotBikeClient extends EventEmitter {
    * @private
    */
   onStatsUpdate() {
-    const {power, cadence} = this;
-    this.emit('stats', {power, cadence});
+    const {power, cadence, speed} = this;
+    this.emit('stats', {power, cadence, speed});
   }
 
   /**
@@ -66,12 +68,15 @@ export class BotBikeClient extends EventEmitter {
       console.error(e);
     }
     console.log(j);
-    const {power, cadence} = j;
+    const {power, cadence, speed} = j;
     if (Number.isInteger(power) && power >= 0) {
       this.power = power;
     }
     if (Number.isInteger(cadence) && cadence >= 0) {
       this.cadence = cadence;
+    }
+    if (!Number.isNaN(speed) && speed >= 0) {
+      this.speed = speed;
     }
   }
 

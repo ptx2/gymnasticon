@@ -4,7 +4,7 @@ import {EventEmitter} from 'events';
  * Emit pedal stroke events at a rate that matches the given target cadence.
  * The target cadence can be updated on-the-fly.
  */
-export class Simulation extends EventEmitter {
+export class CrankSimulation extends EventEmitter {
   constructor() {
     super();
     this._cadence = 0;

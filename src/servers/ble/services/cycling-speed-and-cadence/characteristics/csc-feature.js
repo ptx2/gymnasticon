@@ -14,7 +14,7 @@ export class CscFeatureCharacteristic extends Characteristic {
           value: 'CSC Feature'
         })
       ],
-      value: Buffer.from([2,0]) // crank revolution data
+      value: Buffer.from([3,0]) // crank revolution data
     })
   }
 }
