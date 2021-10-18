@@ -35,7 +35,6 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
    * @param {number} measurement.wheel.revolutions - revolution count at last wheel event.
    * @param {number} measurement.wheel.timestamp - timestamp at last wheel event.
    */
-   */
   updateMeasurement({ power, crank, wheel }) {
     let flags = 0;
 
