@@ -9,6 +9,7 @@ const WHEEL_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
 
 /**
  * Bluetooth LE GATT CSC Measurement Characteristic implementation.
+ * https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.csc_measurement.xml
  */
 export class CscMeasurementCharacteristic extends Characteristic {
   constructor() {

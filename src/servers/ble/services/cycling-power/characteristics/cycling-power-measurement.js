@@ -9,6 +9,7 @@ const WHEEL_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
 
 /**
  * Bluetooth LE GATT Cycling Power Measurement Characteristic implementation.
+ * https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.cycling_power_measurement.xml
  */
 export class CyclingPowerMeasurementCharacteristic extends Characteristic {
   constructor() {

@@ -156,11 +156,14 @@ export class AntServer {
 
     const spd_data = [
       spd_channel,
-      ...Ant.Messages.intToLEHexArray(0x0, 4),
-      ...Ant.Messages.intToLEHexArray(this.wheelTimestamp, 2),     // Last event Time
-      ...Ant.Messages.intToLEHexArray(this.wheelRevolutions, 2),   // Revolution Count
+      ...Ant.Messages.intToLEHexArray(0x0, 4),                      // Unused for SPD only sensor
+      ...Ant.Messages.intToLEHexArray(this.wheelTimestamp, 2),      // Last event Time
+      ...Ant.Messages.intToLEHexArray(this.wheelRevolutions, 2),    // Revolution Count
     ];
 
+    /**
+     * Sending SPD data twice in this order leads to more receiver stability.
+     */
     const messages = [
       Ant.Messages.broadcastData(spd_data),
       Ant.Messages.broadcastData(pwr_data),
