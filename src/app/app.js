@@ -4,8 +4,7 @@ import bleno from '@abandonware/bleno';
 import {once} from 'events';
 
 import {GymnasticonServer} from '../servers/ble';
-import {AntBikePower} from '../servers/ant/bike-power';
-import {AntBikeSpeed} from '../servers/ant/bike-speed';
+import {AntServer} from '../servers/ant';
 import {createBikeClient, getBikeTypes} from '../bikes';
 import {CrankSimulation} from './crankSimulation';
 import {WheelSimulation} from './wheelSimulation';
@@ -83,8 +82,7 @@ export class App {
     this.server = new GymnasticonServer(bleno, opts.serverName);
 
     this.antStick = createAntStick(opts);
-    this.antBikePower = new AntBikePower(this.antStick, {deviceId: opts.antDeviceId});
-    this.antBikeSpeed = new AntBikeSpeed(this.antStick, {deviceId: opts.antDeviceId});
+    this.antServer = new AntServer(this.antStick, {deviceId: opts.antDeviceId});
     this.antStick.on('startup', this.onAntStickStartup.bind(this));
 
     this.pingInterval = new Timer(opts.serverPingInterval);
@@ -137,8 +135,8 @@ export class App {
     this.cadence = this.crankSimulation.cadence;
     let {power, crank, wheel, cadence} = this;
     this.logger.log(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} power=${power}W]`);
-    //this.antBikePower.updateMeasurement({ power, cadence });
     //this.server.updateMeasurement({ power, crank, wheel });
+    this.antServer.updateMeasurement({ power, cadence, wheel });
   }
 
   onWheelRotation(timestamp) {
@@ -147,14 +145,15 @@ export class App {
     this.wheel.revolutions++;
     let {power, crank, wheel, cadence} = this;
     this.logger.log(`wheel rotation [timestamp=${timestamp} revolutions=${wheel.revolutions} power=${power}W]`);
-    this.antBikeSpeed.updateMeasurement({ wheel });
-    this.server.updateMeasurement({ power, crank, wheel });
+    //this.server.updateMeasurement({ power, crank, wheel });
+    this.antServer.updateMeasurement({ power, cadence, wheel });
   }
 
   onPingInterval() {
     debuglog(`pinging app since no stats or pedal strokes for ${this.pingInterval.interval}s`);
-    let {power, crank, wheel} = this;
+    let {power, crank, wheel, cadence} = this;
     this.server.updateMeasurement({ power, crank, wheel });
+    this.antServer.updateMeasurement({ power, cadence, wheel });
   }
 
   onBikeStats({ power, cadence, speed }) {
@@ -166,8 +165,7 @@ export class App {
     this.wheelSimulation.speed = speed;
     let {crank, wheel} = this;
     this.server.updateMeasurement({ power, crank, wheel });
-    //this.antBikePower.updateMeasurement({ power, cadence });
-    //this.antBikeSpeed.updateMeasurement({ wheel });
+    this.antServer.updateMeasurement({ power, cadence, wheel });
   }
 
   onBikeStatsTimeout() {
@@ -197,14 +195,12 @@ export class App {
 
   onAntStickStartup() {
     this.logger.log('ANT+ stick opened');
-    //this.antBikePower.start();
-    this.antBikeSpeed.start();
+    this.antServer.start();
   }
 
   stopAnt() {
     this.logger.log('stopping ANT+ server');
-    //this.antBikePower.stop();
-    this.antBikeSpeed.stop();
+    this.antServer.stop();
   }
 
   onSigInt() {
@@ -215,7 +211,7 @@ export class App {
   }
 
   onExit() {
-    if (this.antBikePower.isRunning||this.antBikeSpeed.isRunning) {
+    if (this.antServer.isRunning) {
       this.stopAnt();
     }
   }
