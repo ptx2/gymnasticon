@@ -164,7 +164,6 @@ export class AntServer {
     ];
 
     const messages = [
-      Ant.Messages.broadcastData(pwr_data),
       Ant.Messages.broadcastData(spd_data),
       Ant.Messages.broadcastData(pwr_data),
       Ant.Messages.broadcastData(spd_data),
