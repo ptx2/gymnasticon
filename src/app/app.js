@@ -132,10 +132,9 @@ export class App {
     this.pingInterval.reset();
     this.crank.timestamp = timestamp;
     this.crank.revolutions++;
-    this.cadence = this.crankSimulation.cadence;
     let {power, crank, wheel, cadence} = this;
-    this.logger.log(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} power=${power}W]`);
-    //this.server.updateMeasurement({ power, crank, wheel });
+    this.logger.log(`pedal stroke [timestamp=${timestamp} revolutions=${crank.revolutions} cadence=${cadence}rpm power=${power}W]`);
+    this.server.updateMeasurement({ power, crank, wheel });
     this.antServer.updateMeasurement({ power, cadence, wheel });
   }
 
@@ -144,8 +143,8 @@ export class App {
     this.wheel.timestamp = timestamp;
     this.wheel.revolutions++;
     let {power, crank, wheel, cadence} = this;
-    this.logger.log(`wheel rotation [timestamp=${timestamp} revolutions=${wheel.revolutions} power=${power}W]`);
-    //this.server.updateMeasurement({ power, crank, wheel });
+    this.logger.log(`wheel rotation [timestamp=${timestamp} revolutions=${wheel.revolutions} cadence=${cadence}rpm power=${power}W]`);
+    this.server.updateMeasurement({ power, crank, wheel });
     this.antServer.updateMeasurement({ power, cadence, wheel });
   }
 
@@ -161,6 +160,7 @@ export class App {
     this.logger.log(`received stats from bike [power=${power}W cadence=${cadence}rpm speed=${speed}km/h]`);
     this.statsTimeout.reset();
     this.power = power;
+    this.cadence = cadence;
     this.crankSimulation.cadence = cadence;
     this.wheelSimulation.speed = speed;
     let {crank, wheel} = this;

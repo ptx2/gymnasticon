@@ -124,10 +124,8 @@ export class AntServer {
    * @param {number} measurement.wheel.timestamp - timestamp at last wheel event.
    */
   updateMeasurement({ power, cadence, wheel }) {
-    if (power) {
-      this.power = power;
-      this.cadence = cadence;
-    }
+    this.power = power;
+    this.cadence = cadence;
     if (wheel) {
       this.wheelRevolutions = wheel.revolutions;
       this.wheelTimestamp = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
