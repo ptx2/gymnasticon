@@ -219,6 +219,7 @@ export function parse(data) {
 export function calcPowerToSpeed(power) {
   // Calculate Speed based on
   // https://ihaque.org/posts/2020/12/25/pelomon-part-ib-computing-speed/
+  let speed = 0;
   const r = Math.sqrt(power);
   if (power < 26) {
     const speed = 0.057 - 0.172 * r + 0.759 * r^2 - 0.079 * r^3
