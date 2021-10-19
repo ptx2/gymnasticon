@@ -3,15 +3,16 @@ import {Timer} from '../../util/timer';
 
 const debuglog = require('debug')('gym:servers:ant');
 
+const CRANK_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
 const WHEEL_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
 
-const PWR_DEVICE_TYPE = 0x0b; // Bike Power Sensors
+const PWR_DEVICE_TYPE = 0x0b; // Bike Power Sensor
 const PWR_DEVICE_NUMBER = 1;
 const PWR_PERIOD = 8182; // 8182/32768 ~4hz PWR
 
-const SPD_DEVICE_TYPE = 0x7b; // Bike Speed Sensors
-const SPD_DEVICE_NUMBER = 2;
-const SPD_PERIOD = 8118; // 8118/32768 ~4hz SPD
+const SAC_DEVICE_TYPE = 0x79; // Bike Speed and Cadence Sensor
+const SAC_DEVICE_NUMBER = 2;
+const SAC_PERIOD = 8086; // 8086/32768 ~4hz SPD+CDC
 
 const RF_CHANNEL = 57; // 2457 MHz
 const PERIOD = 8182;
@@ -24,7 +25,7 @@ const defaults = {
 /**
  * Handles communication with apps (e.g. Zwift) using the ANT+ Bicycle Power
  * profile (instantaneous cadence and power), as well as ANT+ Bicycle Speed
- * profile (wheel rotations and timestamp).
+ * and Cadence profile (wheel rotations and timestamp).
  */
 export class AntServer {
   /**
@@ -44,11 +45,12 @@ export class AntServer {
     this.eventCount = 0;
     this.accumulatedPower = 0;
 
-    this.spd_deviceId = opts.deviceId + 1;
-    this.spd_channel = 2;
+    this.sac_deviceId = opts.deviceId + 1;
+    this.sac_channel = 2;
     this.wheelRevolutions = 0;
     this.wheelTimestamp = 0;
-    this.wheelCount = 0;
+    this.crankRevolutions = 0;
+    this.crankTimestamp = 0;
 
     this.broadcastInterval = new Timer(BROADCAST_INTERVAL);
     this.broadcastInterval.on('timeout', this.onBroadcastInterval.bind(this));
@@ -60,7 +62,9 @@ export class AntServer {
    * Start the ANT+ server (setup channel and start broadcasting).
    */
   start() {
-    const {stick, pwr_channel, spd_channel, pwr_deviceId, spd_deviceId} = this;
+    const {stick, pwr_channel, sac_channel, pwr_deviceId, sac_deviceId} = this;
+
+    // Initialize PWR channel
     const pwr_messages = [
       Ant.Messages.assignChannel(pwr_channel, 'transmit_only'),
       Ant.Messages.setDevice(pwr_channel, pwr_deviceId, PWR_DEVICE_TYPE, PWR_DEVICE_NUMBER),
@@ -73,16 +77,17 @@ export class AntServer {
       stick.write(pm);
     }
 
-    const spd_messages = [
-      Ant.Messages.assignChannel(spd_channel, 'transmit_only'),
-      Ant.Messages.setDevice(spd_channel, spd_deviceId, SPD_DEVICE_TYPE, SPD_DEVICE_NUMBER),
-      Ant.Messages.setFrequency(spd_channel, RF_CHANNEL),
-      Ant.Messages.setPeriod(spd_channel, SPD_PERIOD),
-      Ant.Messages.openChannel(spd_channel),
+    // Initialize SaC channel
+    const sac_messages = [
+      Ant.Messages.assignChannel(sac_channel, 'transmit_only'),
+      Ant.Messages.setDevice(sac_channel, sac_deviceId, SAC_DEVICE_TYPE, SAC_DEVICE_NUMBER),
+      Ant.Messages.setFrequency(sac_channel, RF_CHANNEL),
+      Ant.Messages.setPeriod(sac_channel, SAC_PERIOD),
+      Ant.Messages.openChannel(sac_channel),
     ];
-    debuglog(`ANT+ server speed start [deviceId=${spd_deviceId} channel=${spd_channel}]`);
-    for (let sm of spd_messages) {
-      stick.write(sm);
+    debuglog(`ANT+ server speed and cadence start [deviceId=${sac_deviceId} channel=${sac_channel}]`);
+    for (let scm of sac_messages) {
+      stick.write(scm);
     }
     this.broadcastInterval.reset();
     this._isRunning = true;
@@ -96,21 +101,27 @@ export class AntServer {
    * Stop the ANT+ server (stop broadcasting and unassign channel).
    */
   stop() {
-    const {stick, pwr_channel, spd_channel} = this;
+    const {stick, pwr_channel, sac_channel} = this;
     this.broadcastInterval.cancel();
+
     const pwr_messages = [
       Ant.Messages.closeChannel(pwr_channel),
       Ant.Messages.unassignChannel(pwr_channel),
     ];
+
+    const sac_messages = [
+      Ant.Messages.closeChannel(sac_channel),
+      Ant.Messages.unassignChannel(sac_channel),
+    ];
+
+    // Close PWR and SaC channels
+    // Wait between PWR and SaC close messages
     for (let pm of pwr_messages) {
       stick.write(pm);
     }
-    const spd_messages = [
-      Ant.Messages.closeChannel(spd_channel),
-      Ant.Messages.unassignChannel(spd_channel),
-    ];
-    for (let sm of spd_messages) {
-      stick.write(sm);
+    sleep(100);
+    for (let scm of sac_messages) {
+      stick.write(scm);
     }
   }
 
@@ -119,13 +130,20 @@ export class AntServer {
    * @param {object} measurement
    * @param {number} measurement.power - power in watts
    * @param {number} measurement.cadence - cadence in rpm
+   * @param {object} measurement.crank - last crank event.
+   * @param {number} measurement.crank.revolutions - revolution count at last crank event.
+   * @param {number} measurement.crank.timestamp - timestamp at last crank event.
    * @param {object} measurement.wheel - last wheel event.
    * @param {number} measurement.wheel.revolutions - revolution count at last wheel event.
    * @param {number} measurement.wheel.timestamp - timestamp at last wheel event.
    */
-  updateMeasurement({ power, cadence, wheel }) {
+  updateMeasurement({ power, cadence, crank, wheel }) {
     this.power = power;
     this.cadence = cadence;
+    if (crank) {
+      this.crankRevolutions = crank.revolutions;
+      this.crankTimestamp = Math.round(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
+    }
     if (wheel) {
       this.wheelRevolutions = wheel.revolutions;
       this.wheelTimestamp = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
@@ -136,8 +154,9 @@ export class AntServer {
    * Broadcast instantaneous power, cadence and wheel revolution data.
    */
   onBroadcastInterval() {
-    const {stick, pwr_channel, spd_channel, power, cadence} = this;
+    const {stick, pwr_channel, sac_channel, power, cadence} = this;
 
+    // Build PWR broadcast message
     this.accumulatedPower += power;
     this.accumulatedPower &= 0xffff;
     const pwr_data = [
@@ -149,30 +168,43 @@ export class AntServer {
       ...Ant.Messages.intToLEHexArray(this.accumulatedPower, 2),
       ...Ant.Messages.intToLEHexArray(power, 2),
     ];
+    const pwr_messages = [
+      Ant.Messages.broadcastData(pwr_data),
+    ];
     debuglog(`ANT+ broadcast power power=${power}W cadence=${cadence}rpm accumulatedPower=${this.accumulatedPower}W eventCount=${this.eventCount}`);
 
+    // Build SaC broadcast message
     this.eventCount++;
     this.eventCount &= 0xff;
-
-    const spd_data = [
-      spd_channel,
-      ...Ant.Messages.intToLEHexArray(0x0, 4),                      // Unused for SPD only sensor
-      ...Ant.Messages.intToLEHexArray(this.wheelTimestamp, 2),      // Last event Time
-      ...Ant.Messages.intToLEHexArray(this.wheelRevolutions, 2),    // Revolution Count
+    const sac_data = [
+      sac_channel,
+      ...Ant.Messages.intToLEHexArray(this.crankTimestamp, 2),      // Last crank event Time
+      ...Ant.Messages.intToLEHexArray(this.crankRevolutions, 2),    // Crank revolution Count
+      ...Ant.Messages.intToLEHexArray(this.wheelTimestamp, 2),      // Last wheel event Time
+      ...Ant.Messages.intToLEHexArray(this.wheelRevolutions, 2),    // Wheel revolution Count
     ];
-
-    /**
-     * Sending SPD data twice in this order leads to more receiver stability.
-     */
-    const messages = [
-      Ant.Messages.broadcastData(spd_data),
-      Ant.Messages.broadcastData(pwr_data),
-      Ant.Messages.broadcastData(spd_data),
+    const sac_messages = [
+      Ant.Messages.broadcastData(sac_data),
     ];
-    debuglog(`ANT+ broadcast speed revolutions=${this.wheelRevolutions} timestamp=${this.wheelTimestamp}`);
+    debuglog(`ANT+ broadcast cadence revolutions=${this.crankRevolutions} cadence timestamp=${this.crankTimestamp} speed revolutions=${this.wheelRevolutions} timestamp=${this.wheelTimestamp}`);
 
-    for (let m of messages) {
-      stick.write(m);
+    // Send broadcast messages
+    // Wait between PWR and SaC broadcast messages
+    for (let pm of pwr_messages) {
+      stick.write(pm);
     }
+    sleep(100);
+    for (let scm of sac_messages) {
+      stick.write(scm);
+    }
+    debuglog(`ANT+ broadcast complete`);
   }
+}
+
+export function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
 }

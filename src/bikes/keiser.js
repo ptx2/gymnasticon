@@ -208,18 +208,22 @@ export function parse(data) {
       // Realtime data received
       const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
       const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
+      const speed = calcPowerToSpeed(power);
 
-      // Calculate Speed based on
-      // https://ihaque.org/posts/2020/12/25/pelomon-part-ib-computing-speed/
-      let speed = 0;
-      const r = Math.sqrt(power);
-      if (power < 26) {
-        speed = 0.057 - 0.172 * r + 0.759 * r^2 - 0.079 * r^3
-      } else {
-        speed = -1.635 + 2.325 * r - 0.064 * r^2 + 0.001 * r^3
-      }
       return {type: 'stats', payload: {power, cadence, speed}};
     }
   }
   throw new Error('unable to parse message');
+}
+
+export function calcPowerToSpeed(power) {
+  // Calculate Speed based on
+  // https://ihaque.org/posts/2020/12/25/pelomon-part-ib-computing-speed/
+  const r = Math.sqrt(power);
+  if (power < 26) {
+    const speed = 0.057 - 0.172 * r + 0.759 * r^2 - 0.079 * r^3
+  } else {
+    const speed = -1.635 + 2.325 * r - 0.064 * r^2 + 0.001 * r^3
+  }
+  return speed;
 }
