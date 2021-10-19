@@ -222,9 +222,9 @@ export function calcPowerToSpeed(power) {
   let speed = 0;
   const r = Math.sqrt(power);
   if (power < 26) {
-    const speed = 0.057 - 0.172 * r + 0.759 * r^2 - 0.079 * r^3
+    speed = 0.057 - 0.172 * r + 0.759 * r^2 - 0.079 * r^3
   } else {
-    const speed = -1.635 + 2.325 * r - 0.064 * r^2 + 0.001 * r^3
+    speed = -1.635 + 2.325 * r - 0.064 * r^2 + 0.001 * r^3
   }
   return speed;
 }

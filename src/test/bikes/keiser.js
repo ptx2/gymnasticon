@@ -8,10 +8,11 @@ import {bikeVersion} from '../../bikes/keiser';
  */
 test('parse() parses Keiser indoor bike data values', t => {
   const buf = Buffer.from('0201063000383803460573000D00042701000A', 'hex');
-  const {type, payload: {power, cadence}} = parse(buf);
+  const {type, payload: {power, cadence, speed}} = parse(buf);
   t.equal(type, 'stats', 'message type');
   t.equal(power, 115, 'power (watts)');
   t.equal(cadence, 82, 'cadence (rpm)');
+  t.equal(speed, 23, 'speed (km/h)');
   t.end();
 });
 
