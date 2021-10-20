@@ -36,28 +36,36 @@ export class CscMeasurementCharacteristic extends Characteristic {
    * @param {number} measurement.wheel.timestamp - timestamp at last wheel event.
    */
   updateMeasurement({ crank, wheel }) {
-    if (crank && wheel) {
-      let flags = 0;
-      const value = Buffer.alloc(11);
+    let flags = 0;
+    let debugOutput = "";
 
+    if ((!crank) && (!wheel)) {
+      return;
+    }
+
+    const value = Buffer.alloc(7);
+
+    if (wheel) {
       const wheelRevolutions32bit = wheel.revolutions & 0xffffffff;
       const wheelTimestamp16bit = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
       value.writeUInt32LE(wheelRevolutions32bit, 1);
       value.writeUInt16LE(wheelTimestamp16bit, 5);
-
+      flags |= FLAG_HASSPEEDDATA;
+      debugOutput += ` wheel revolutions=${wheelRevolutions32bit} wheel timestamp=${wheelTimestamp16bit}`
+    }
+    else if (crank) {
       const crankRevolutions16bit = crank.revolutions & 0xffff;
       const crankTimestamp16bit = Math.round(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
-      value.writeUInt16LE(crankRevolutions16bit, 7);
-      value.writeUInt16LE(crankTimestamp16bit, 9);
-
-      flags |= FLAG_HASSPEEDDATA;
+      value.writeUInt16LE(crankRevolutions16bit, 1);
+      value.writeUInt16LE(crankTimestamp16bit, 3);
+      debugOutput += ` crank revolutions=${crankRevolutions16bit} crank timestamp=${crankTimestamp16bit}`
       flags |= FLAG_HASCRANKDATA;
+    }
 
-      value.writeUInt8(flags, 0);
-      debuglog(`BLE broadcast CSC wheel revolutions=${wheelRevolutions32bit} wheel timestamp=${wheelTimestamp16bit} crank revolutions=${crankRevolutions16bit} crank timestamp=${crankTimestamp16bit} message=${value.toString('hex')}`);
-      if (this.updateValueCallback) {
-        this.updateValueCallback(value)
-      }
+    value.writeUInt8(flags, 0);
+    debuglog(`BLE broadcast SPD+CDC${debugOutput} message=${value.toString('hex')}`);
+    if (this.updateValueCallback) {
+      this.updateValueCallback(value)
     }
   }
 }

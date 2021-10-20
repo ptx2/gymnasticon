@@ -1,5 +1,7 @@
 import {EventEmitter} from 'events';
 
+const debuglog = require('debug')('gym:sim:wheel');
+
 /**
  * Emit wheel rotation events at a rate that matches the given target speed.
  * The target speed can be updated on-the-fly.
@@ -63,6 +65,7 @@ export class WheelSimulation extends EventEmitter {
     let timeSinceLast = now - this._lastWheelTime;
     let timeUntilNext = Math.max(0, this._interval - timeSinceLast);
     let nextWheelTime = now + timeUntilNext;
+    debuglog(`Wheel Simulation: Interval=${this._interval} Next interval=${timeSinceLast+timeUntilNext} sinceLast=${timeSinceLast} untilNext=${timeUntilNext}`);
     this._timeoutId = setTimeout(() => {
       this.onWheel(nextWheelTime);
       this.scheduleWheel();
