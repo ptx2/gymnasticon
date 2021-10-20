@@ -38,25 +38,30 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
    */
   updateMeasurement({ power, crank, wheel }) {
     let flags = 0;
+    let debugOutput = "";
 
-    const value = Buffer.alloc(14);
+    const value = Buffer.alloc(10);
     value.writeInt16LE(power, 2);
 
-    if (crank && wheel) {
+    if (wheel) {
       const wheelRevolutions32bit = wheel.revolutions & 0xffffffff;
       const wheelTimestamp16bit = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
       value.writeUInt32LE(wheelRevolutions32bit, 4);
       value.writeUInt16LE(wheelTimestamp16bit, 8);
+      flags |= FLAG_HASSPEEDDATA;
+      debugOutput += ` wheel revolutions=${wheelRevolutions32bit} wheel timestamp=${wheelTimestamp16bit}`
+    }
+    else if (crank) {
       const crankRevolutions16bit = crank.revolutions & 0xffff;
       const crankTimestamp16bit = Math.round(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
-      value.writeUInt16LE(crankRevolutions16bit, 10);
-      value.writeUInt16LE(crankTimestamp16bit, 12);
+      value.writeUInt16LE(crankRevolutions16bit, 4);
+      value.writeUInt16LE(crankTimestamp16bit, 6);
+      debugOutput += ` crank revolutions=${crankRevolutions16bit} crank timestamp=${crankTimestamp16bit}`
       flags |= FLAG_HASCRANKDATA;
-      flags |= FLAG_HASSPEEDDATA;
     }
 
     value.writeUInt16LE(flags, 0);
-    debuglog(`BLE broadcast PWR power=${power} message=${value.toString('hex')}`);
+    debuglog(`BLE broadcast PWR power=${power}${debugOutput} message=${value.toString('hex')}`);
     if (this.updateValueCallback) {
       this.updateValueCallback(value)
     }

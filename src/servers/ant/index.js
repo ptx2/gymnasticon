@@ -15,7 +15,7 @@ const SAC_DEVICE_NUMBER = 2;
 const SAC_PERIOD = 8086; // 8086/32768 ~4hz SPD+CDC
 
 const RF_CHANNEL = 57; // 2457 MHz
-const PERIOD = 8182;
+const PERIOD = 8192 / 2 ; // 8 Hz; Send PWR & SaC data on every other cycle
 const BROADCAST_INTERVAL = PERIOD / 32768; // seconds
 
 const defaults = {
@@ -39,6 +39,8 @@ export class AntServer {
     const opts = {...defaults, ...options};
     this.stick = antStick;
     this.pwr_deviceId = opts.deviceId;
+    this.broadcastCycle = 0;
+
     this.pwr_channel = 1;
     this.power = 0;
     this.cadence = 0;
@@ -119,7 +121,6 @@ export class AntServer {
     for (let pm of pwr_messages) {
       stick.write(pm);
     }
-    sleep(100);
     for (let scm of sac_messages) {
       stick.write(scm);
     }
@@ -154,57 +155,50 @@ export class AntServer {
    * Broadcast instantaneous power, cadence and wheel revolution data.
    */
   onBroadcastInterval() {
-    const {stick, pwr_channel, sac_channel, power, cadence} = this;
+    const {stick, pwr_channel, sac_channel, power, cadence, broadcastCycle} = this;
 
-    // Build PWR broadcast message
-    this.accumulatedPower += power;
-    this.accumulatedPower &= 0xffff;
-    const pwr_data = [
-      pwr_channel,
-      0x10, // power only
-      this.eventCount,
-      0xff, // pedal power not used
-      cadence,
-      ...Ant.Messages.intToLEHexArray(this.accumulatedPower, 2),
-      ...Ant.Messages.intToLEHexArray(power, 2),
-    ];
-    const pwr_messages = [
-      Ant.Messages.broadcastData(pwr_data),
-    ];
-    debuglog(`ANT+ broadcast power power=${power}W cadence=${cadence}rpm accumulatedPower=${this.accumulatedPower}W eventCount=${this.eventCount}`);
-
-    // Build SaC broadcast message
-    this.eventCount++;
-    this.eventCount &= 0xff;
-    const sac_data = [
-      sac_channel,
-      ...Ant.Messages.intToLEHexArray(this.crankTimestamp, 2),      // Last crank event Time
-      ...Ant.Messages.intToLEHexArray(this.crankRevolutions, 2),    // Crank revolution Count
-      ...Ant.Messages.intToLEHexArray(this.wheelTimestamp, 2),      // Last wheel event Time
-      ...Ant.Messages.intToLEHexArray(this.wheelRevolutions, 2),    // Wheel revolution Count
-    ];
-    const sac_messages = [
-      Ant.Messages.broadcastData(sac_data),
-    ];
-    debuglog(`ANT+ broadcast cadence revolutions=${this.crankRevolutions} cadence timestamp=${this.crankTimestamp} speed revolutions=${this.wheelRevolutions} timestamp=${this.wheelTimestamp}`);
-
-    // Send broadcast messages
-    // Wait between PWR and SaC broadcast messages
-    for (let pm of pwr_messages) {
-      stick.write(pm);
+    // Send PWR and SaC data alternating on every other 8 Hz cycle
+    if (broadcastCycle %2 == 0) {
+      // Build PWR broadcast message
+      this.accumulatedPower += power;
+      this.accumulatedPower &= 0xffff;
+      const pwr_data = [
+        pwr_channel,
+        0x10, // power only
+        this.eventCount,
+        0xff, // pedal power not used
+        cadence,
+        ...Ant.Messages.intToLEHexArray(this.accumulatedPower, 2),
+        ...Ant.Messages.intToLEHexArray(power, 2),
+      ];
+      this.eventCount++;
+      this.eventCount &= 0xff;
+      // Send broadcast messages
+      const pwr_messages = [
+        Ant.Messages.broadcastData(pwr_data),
+      ];
+      debuglog(`ANT+ broadcast power power=${power}W cadence=${cadence}rpm accumulatedPower=${this.accumulatedPower}W eventCount=${this.eventCount}`);
+      for (let pm of pwr_messages) {
+        stick.write(pm);
+      }
+    } else {
+      // Build SaC broadcast message
+      const sac_data = [
+        sac_channel,
+        ...Ant.Messages.intToLEHexArray(this.crankTimestamp, 2),      // Last crank event Time
+        ...Ant.Messages.intToLEHexArray(this.crankRevolutions, 2),    // Crank revolution Count
+        ...Ant.Messages.intToLEHexArray(this.wheelTimestamp, 2),      // Last wheel event Time
+        ...Ant.Messages.intToLEHexArray(this.wheelRevolutions, 2),    // Wheel revolution Count
+      ];
+      const sac_messages = [
+        Ant.Messages.broadcastData(sac_data),
+      ];
+      // Send broadcast messages
+      debuglog(`ANT+ broadcast cadence revolutions=${this.crankRevolutions} cadence timestamp=${this.crankTimestamp} speed revolutions=${this.wheelRevolutions} timestamp=${this.wheelTimestamp}`);
+      for (let scm of sac_messages) {
+        stick.write(scm);
+      }
     }
-    sleep(100);
-    for (let scm of sac_messages) {
-      stick.write(scm);
-    }
-    debuglog(`ANT+ broadcast complete`);
+    this.broadcastCycle++;
   }
-}
-
-export function sleep(milliseconds) {
-  const date = Date.now();
-  let currentDate = null;
-  do {
-    currentDate = Date.now();
-  } while (currentDate - date < milliseconds);
 }

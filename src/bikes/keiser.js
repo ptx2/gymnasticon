@@ -13,7 +13,7 @@ const KEISER_VALUE_IDX_VER_MAJOR = 2; // 8-bit Version Major data offset within 
 const KEISER_VALUE_IDX_VER_MINOR = 3; // 8-bit Version Major data offset within packet
 const KEISER_STATS_NEWVER_MINOR = 30; // Version Minor when broadcast interval was changed from ~ 2 sec to ~ 0.3 sec
 const KEISER_STATS_TIMEOUT_OLD = 7.0; // Old Bike: If no stats received within 7 sec, reset power and cadence to 0
-const KEISER_STATS_TIMEOUT_NEW = 1.0; // New Bike: If no stats received within 1 sec, reset power and cadence to 0
+const KEISER_STATS_TIMEOUT_NEW = 1.5; // New Bike: If no stats received within 1 sec, reset power and cadence to 0
 const KEISER_BIKE_TIMEOUT = 60.0; // Consider bike disconnected if no stats have been received for 60 sec / 1 minutes
 
 const debuglog = require('debug')('gym:bikes:keiser');
