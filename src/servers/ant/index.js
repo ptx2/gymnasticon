@@ -68,7 +68,7 @@ export class AntServer {
 
     // Initialize PWR channel
     const pwr_messages = [
-      Ant.Messages.assignChannel(pwr_channel, 'transmit_only'),
+      Ant.Messages.assignChannel(pwr_channel, 'transmit'),
       Ant.Messages.setDevice(pwr_channel, pwr_deviceId, PWR_DEVICE_TYPE, PWR_DEVICE_NUMBER),
       Ant.Messages.setFrequency(pwr_channel, RF_CHANNEL),
       Ant.Messages.setPeriod(pwr_channel, PWR_PERIOD),
@@ -81,7 +81,7 @@ export class AntServer {
 
     // Initialize SaC channel
     const sac_messages = [
-      Ant.Messages.assignChannel(sac_channel, 'transmit_only'),
+      Ant.Messages.assignChannel(sac_channel, 'transmit'),
       Ant.Messages.setDevice(sac_channel, sac_deviceId, SAC_DEVICE_TYPE, SAC_DEVICE_NUMBER),
       Ant.Messages.setFrequency(sac_channel, RF_CHANNEL),
       Ant.Messages.setPeriod(sac_channel, SAC_PERIOD),

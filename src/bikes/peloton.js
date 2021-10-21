@@ -171,9 +171,9 @@ export function calcPowerToSpeed(power) {
   let speed = 0;
   const r = Math.sqrt(power);
   if (power < 26) {
-    speed = 0.057 - 0.172 * r + 0.759 * r^2 - 0.079 * r^3
+    speed = (0.057 - 0.172 * r + 0.759 * Math.pow(r,2) - 0.079 * Math.pow(r,3)).toFixed(2);
   } else {
-    speed = -1.635 + 2.325 * r - 0.064 * r^2 + 0.001 * r^3
+    speed = (-1.635 + 2.325 * r - 0.064 * Math.pow(r,2) + 0.001 * Math.pow(r,3)).toFixed(2);
   }
   return speed;
 }
