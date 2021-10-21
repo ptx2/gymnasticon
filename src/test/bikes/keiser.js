@@ -12,7 +12,7 @@ test('parse() parses Keiser indoor bike data values', t => {
   t.equal(type, 'stats', 'message type');
   t.equal(power, 115, 'power (watts)');
   t.equal(cadence, 82, 'cadence (rpm)');
-  t.equal(speed, 17.17, 'speed (km/h)');
+  t.equal(speed, '17.17', 'speed (km/h)');
   t.end();
 });
 

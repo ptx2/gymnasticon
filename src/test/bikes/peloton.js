@@ -10,6 +10,6 @@ test('decodePeloton() parses Peloton stats messages', t => {
   const speed = calcPowerToSpeed(233.6);
   t.equal(power, 233.6, 'power (watts)');
   t.equal(cadence, 92, 'cadence (rpm)');
-  t.equal(speed, 22.52, 'speed (km/h)');
+  t.equal(speed, '22.52', 'speed (km/h)');
   t.end();
 });
