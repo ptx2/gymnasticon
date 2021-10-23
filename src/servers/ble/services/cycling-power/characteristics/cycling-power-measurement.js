@@ -5,7 +5,7 @@ const debuglog = require('debug')('gym:servers:ble');
 const FLAG_HASCRANKDATA = (1<<5);
 const FLAG_HASSPEEDDATA = (1<<4);
 const CRANK_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
-const WHEEL_TIMESTAMP_SCALE = 1024 / 1000; // timestamp resolution is 1/1024 sec
+const WHEEL_TIMESTAMP_SCALE = 2048 / 1000; // timestamp resolution is 1/2048 sec
 
 /**
  * Bluetooth LE GATT Cycling Power Measurement Characteristic implementation.
