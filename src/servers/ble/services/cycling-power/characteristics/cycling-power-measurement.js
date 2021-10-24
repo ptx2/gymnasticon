@@ -40,18 +40,19 @@ export class CyclingPowerMeasurementCharacteristic extends Characteristic {
     let flags = 0;
     let debugOutput = "";
 
-    const value = Buffer.alloc(10);
+    const value = Buffer.alloc(8);
     value.writeInt16LE(power, 2);
 
-    if (wheel) {
-      const wheelRevolutions32bit = wheel.revolutions & 0xffffffff;
-      const wheelTimestamp16bit = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
-      value.writeUInt32LE(wheelRevolutions32bit, 4);
-      value.writeUInt16LE(wheelTimestamp16bit, 8);
-      flags |= FLAG_HASSPEEDDATA;
-      debugOutput += ` wheel revolutions=${wheelRevolutions32bit} wheel timestamp=${wheelTimestamp16bit}`
-    }
-    else if (crank) {
+//    if (wheel) {
+//      const wheelRevolutions32bit = wheel.revolutions & 0xffffffff;
+//      const wheelTimestamp16bit = Math.round(wheel.timestamp * WHEEL_TIMESTAMP_SCALE) & 0xffff;
+//      value.writeUInt32LE(wheelRevolutions32bit, 4);
+//      value.writeUInt16LE(wheelTimestamp16bit, 8);
+//      flags |= FLAG_HASSPEEDDATA;
+//      debugOutput += ` wheel revolutions=${wheelRevolutions32bit} wheel timestamp=${wheelTimestamp16bit}`
+//    }
+//    else if (crank) {
+    if (crank) {
       const crankRevolutions16bit = crank.revolutions & 0xffff;
       const crankTimestamp16bit = Math.round(crank.timestamp * CRANK_TIMESTAMP_SCALE) & 0xffff;
       value.writeUInt16LE(crankRevolutions16bit, 4);
