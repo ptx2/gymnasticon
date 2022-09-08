@@ -48,6 +48,10 @@ export const defaults = {
   // power adjustment (to compensate for inaccurate power measurements on bike)
   powerScale: 1.0, // multiply power by this
   powerOffset: 0.0, // add this to power
+
+  // speed adjustment (to compensate for inaccurate speed measurements on bike)
+  speedScale: 1.0, // multiply speed by this
+  speedOffset: 0.0, // add this to speed
 };
 
 /**
@@ -90,6 +94,9 @@ export class App {
     this.connectTimeout = new Timer(opts.bikeConnectTimeout, {repeats: false});
     this.powerScale = opts.powerScale;
     this.powerOffset = opts.powerOffset;
+    this.speedScale = opts.speedScale;
+    this.speedOffset = opts.speedOffset;
+
 
     this.pingInterval.on('timeout', this.onPingInterval.bind(this));
     this.statsTimeout.on('timeout', this.onBikeStatsTimeout.bind(this));
@@ -157,6 +164,7 @@ export class App {
 
   onBikeStats({ power, cadence, speed }) {
     power = power > 0 ? Math.max(0, Math.round(power * this.powerScale + this.powerOffset)) : 0;
+    speed = speed > 0 ? Math.max(0, Math.round(speed * this.speedScale + this.speedOffset)) : 0;
     this.logger.log(`received stats from bike [power=${power}W cadence=${cadence}rpm speed=${speed}km/h]`);
     this.statsTimeout.reset();
     this.power = power;

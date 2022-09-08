@@ -92,5 +92,15 @@ export const options = {
     describe: '<value> add this value to watts',
     type: 'number',
     default: defaults.powerOffset,
+  },
+  'speed-scale': {
+    describe: '<value> scale speed by this multiplier',
+    type: 'number',
+    default: defaults.speedScale,
+  },
+  'speed-offset': {
+    describe: '<value> add this value to speed',
+    type: 'number',
+    default: defaults.speedOffset,
   }
 };
