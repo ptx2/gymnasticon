@@ -15,6 +15,7 @@ const INDOOR_BIKE_DATA_UUID = '2ad2';
 const IBD_VALUE_MAGIC = Buffer.from([0x44]); // identifies indoor bike data message
 const IBD_VALUE_IDX_POWER = 6; // 16-bit power (watts) data offset within packet
 const IBD_VALUE_IDX_CADENCE = 4; // 16-bit cadence (1/2 rpm) data offset within packet
+const IBD_VALUE_IDX_SPEED = 2; // 16-bit cadence (1/100 km/h) data offset within packet
 
 const debuglog = require('debug')('gym:bikes:ic4');
 
@@ -115,8 +116,8 @@ export class Ic4BikeClient extends EventEmitter {
     this.emit('data', data);
 
     try {
-      const {power, cadence} = parse(data);
-      this.emit('stats', {power, cadence});
+      const {power, cadence, speed} = parse(data);
+      this.emit('stats', {power, cadence, speed});
     } catch (e) {
       if (!/unable to parse message/.test(e)) {
         throw e;
@@ -178,7 +179,8 @@ export function parse(data) {
   if (data.indexOf(IBD_VALUE_MAGIC) === 0) {
     const power = data.readInt16LE(IBD_VALUE_IDX_POWER);
     const cadence = Math.round(data.readUInt16LE(IBD_VALUE_IDX_CADENCE) / 2);
-    return {power, cadence};
+    const speed = data.readUInt16LE(IBD_VALUE_IDX_SPEED) / 100;
+    return {power, cadence, speed};
   }
   throw new Error('unable to parse message');
 }

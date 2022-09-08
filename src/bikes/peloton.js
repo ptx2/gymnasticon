@@ -41,6 +41,7 @@ export class PelotonBikeClient extends EventEmitter {
     // initial stats
     this.power = 0;
     this.cadence = 0;
+    this.speed = 0;
 
     // reset stats to 0 when the user leaves the ride screen or turns the bike off
     this.statsTimeout = new Timer(STATS_TIMEOUT, {repeats: false});
@@ -84,7 +85,8 @@ export class PelotonBikeClient extends EventEmitter {
    */
   onStatsUpdate() {
     const {power, cadence} = this;
-    this.emit('stats', {power, cadence});
+    const speed = calcPowerToSpeed(power);
+    this.emit('stats', {power, cadence, speed});
   }
 
   onSerialMessage(data) {
@@ -117,6 +119,7 @@ export class PelotonBikeClient extends EventEmitter {
   onStatsTimeout() {
     this.power = 0;
     this.cadence = 0;
+    this.speed = 0;
     tracelog("StatsTimeout exceeded");
     this.onStatsUpdate();
   }
@@ -160,4 +163,17 @@ export function decodePeloton(bufferArray, byteLength, isPower) {
   }
 
   return accumulator + precision;
+}
+
+export function calcPowerToSpeed(power) {
+  // Calculate Speed based on
+  // https://ihaque.org/posts/2020/12/25/pelomon-part-ib-computing-speed/
+  let speed = 0;
+  const r = Math.sqrt(power);
+  if (power < 26) {
+    speed = ( ( 0.057 - 0.172 * r + 0.759 * Math.pow(r,2) - 0.079 * Math.pow(r,3)) * 1.609344 ).toFixed(2);
+  } else {
+    speed = ( ( -1.635 + 2.325 * r - 0.064 * Math.pow(r,2) + 0.001 * Math.pow(r,3)) * 1.609344 ).toFixed(2);
+  }
+  return speed;
 }

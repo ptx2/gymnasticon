@@ -17,6 +17,7 @@ const UART_TX_UUID = '6e400003b5a3f393e0a9e50e24dcca9e';
 const STATS_PKT_MAGIC = Buffer.from([0xff, 0x1f, 0x0c]); // identifies a stats packet
 const STATS_PKT_IDX_POWER = 3; // 16-bit power (watts) data offset within packet
 const STATS_PKT_IDX_CADENCE = 12; // 8-bit cadence (rpm) data offset within packet
+const STATS_PKT_IDX_SPEED = 13; // 16-bit speed (km/h x 10) data offset within packet
 
 // the bike's desired LE connection parameters (needed for BlueZ workaround)
 const LE_MIN_INTERVAL = 16*1.25;
@@ -169,7 +170,9 @@ export function parse(data) {
   if (data.indexOf(STATS_PKT_MAGIC) === 0) {
     const power = data.readUInt16BE(STATS_PKT_IDX_POWER);
     const cadence = data.readUInt8(STATS_PKT_IDX_CADENCE);
-    return {type: 'stats', payload: {power, cadence}};
+    const speed = data.readUInt16BE(STATS_PKT_IDX_SPEED)/10;
+
+    return {type: 'stats', payload: {power, cadence,speed}};
   }
   throw new Error('unable to parse message');
 }

@@ -27,6 +27,10 @@ export class GymnasticonServer extends BleServer {
 	 * @param {object} [measurement.crank] - last crank event.
    * @param {number} measurement.crank.revolutions - revolution count at last crank event.
    * @param {number} measurement.crank.timestamp - timestamp at last crank event.
+   * @param {object} [measurement.wheel] - last wheel event.
+   * @param {number} measurement.wheel.revolutions - revolution count at last wheel event.
+   * @param {number} measurement.wheel.timestamp - timestamp at last wheel event.
+
    */
   updateMeasurement(measurement) {
     for (let s of this.services) {

@@ -8,10 +8,11 @@ import {bikeVersion} from '../../bikes/keiser';
  */
 test('parse() parses Keiser indoor bike data values', t => {
   const buf = Buffer.from('0201063000383803460573000D00042701000A', 'hex');
-  const {type, payload: {power, cadence}} = parse(buf);
+  const {type, payload: {power, cadence, speed}} = parse(buf);
   t.equal(type, 'stats', 'message type');
   t.equal(power, 115, 'power (watts)');
   t.equal(cadence, 82, 'cadence (rpm)');
+  t.equal(speed, '27.63', 'speed (km/h)');
   t.end();
 });
 
@@ -19,7 +20,7 @@ test('bikeVersion() Tests Keiser bike version (6.40)', t => {
   const bufver = Buffer.from('0201064000383803460573000D00042701000A', 'hex');
   const {version, timeout} = bikeVersion(bufver);
   t.equal(version, '6.40', 'Version: 6.40');
-  t.equal(timeout, 1, 'Timeout: 1 second');
+  t.equal(timeout, 2, 'Timeout: 2 second');
   t.end();
 });
 
@@ -27,7 +28,7 @@ test('bikeVersion() Tests Keiser bike version (6.30)', t => {
   const bufver = Buffer.from('0201063000383803460573000D00042701000A', 'hex');
   const {version, timeout} = bikeVersion(bufver);
   t.equal(version, '6.30', 'Version: 6.30');
-  t.equal(timeout, 1, 'Timeout: 1 second');
+  t.equal(timeout, 2, 'Timeout: 2 second');
   t.end();
 });
 

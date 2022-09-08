@@ -1,10 +1,12 @@
 import {EventEmitter} from 'events';
 
+const debuglog = require('debug')('gym:sim:crank');
+
 /**
  * Emit pedal stroke events at a rate that matches the given target cadence.
  * The target cadence can be updated on-the-fly.
  */
-export class Simulation extends EventEmitter {
+export class CrankSimulation extends EventEmitter {
   constructor() {
     super();
     this._cadence = 0;
@@ -60,6 +62,7 @@ export class Simulation extends EventEmitter {
     let timeSinceLast = now - this._lastPedalTime;
     let timeUntilNext = Math.max(0, this._interval - timeSinceLast);
     let nextPedalTime = now + timeUntilNext;
+    debuglog(`Crank Simulation: Interval=${this._interval} Next interval=${timeSinceLast+timeUntilNext} sinceLast=${timeSinceLast} untilNext=${timeUntilNext}`);
     this._timeoutId = setTimeout(() => {
       this.onPedal(nextPedalTime);
       this.schedulePedal();

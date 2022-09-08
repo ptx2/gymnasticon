@@ -49,6 +49,11 @@ export const options = {
     type: 'number',
     default: defaults.botCadence,
   },
+  'bot-speed': {
+    describe: '<km/h> initial bot speed',
+    type: 'number',
+    default: defaults.botSpeed,
+  },
   'bot-host': {
     describe: '<host> for power/cadence control over udp',
     type: 'string',
@@ -87,5 +92,15 @@ export const options = {
     describe: '<value> add this value to watts',
     type: 'number',
     default: defaults.powerOffset,
+  },
+  'speed-scale': {
+    describe: '<value> scale speed by this multiplier',
+    type: 'number',
+    default: defaults.speedScale,
+  },
+  'speed-offset': {
+    describe: '<value> add this value to speed',
+    type: 'number',
+    default: defaults.speedOffset,
   }
 };

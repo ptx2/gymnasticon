@@ -13,7 +13,7 @@ const KEISER_VALUE_IDX_VER_MAJOR = 2; // 8-bit Version Major data offset within 
 const KEISER_VALUE_IDX_VER_MINOR = 3; // 8-bit Version Major data offset within packet
 const KEISER_STATS_NEWVER_MINOR = 30; // Version Minor when broadcast interval was changed from ~ 2 sec to ~ 0.3 sec
 const KEISER_STATS_TIMEOUT_OLD = 7.0; // Old Bike: If no stats received within 7 sec, reset power and cadence to 0
-const KEISER_STATS_TIMEOUT_NEW = 1.0; // New Bike: If no stats received within 1 sec, reset power and cadence to 0
+const KEISER_STATS_TIMEOUT_NEW = 2; // New Bike: If no stats received within 2 sec, reset power and cadence to 0
 const KEISER_BIKE_TIMEOUT = 60.0; // Consider bike disconnected if no stats have been received for 60 sec / 1 minutes
 
 const debuglog = require('debug')('gym:bikes:keiser');
@@ -208,9 +208,23 @@ export function parse(data) {
       // Realtime data received
       const power = data.readUInt16LE(KEISER_VALUE_IDX_POWER);
       const cadence = Math.round(data.readUInt16LE(KEISER_VALUE_IDX_CADENCE) / 10);
-      return {type: 'stats', payload: {power, cadence}};
+      const speed = calcPowerToSpeed(power);
+
+      return {type: 'stats', payload: {power, cadence, speed}};
     }
   }
   throw new Error('unable to parse message');
 }
 
+export function calcPowerToSpeed(power) {
+  // Calculate Speed based on
+  // https://ihaque.org/posts/2020/12/25/pelomon-part-ib-computing-speed/
+  let speed = 0;
+  const r = Math.sqrt(power);
+  if (power < 26) {
+    speed = ( ( 0.057 - 0.172 * r + 0.759 * Math.pow(r,2) - 0.079 * Math.pow(r,3)) * 1.609344 ).toFixed(2);
+  } else {
+    speed = ( ( -1.635 + 2.325 * r - 0.064 * Math.pow(r,2) + 0.001 * Math.pow(r,3)) * 1.609344 ).toFixed(2);
+  }
+  return speed;
+}
